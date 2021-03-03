@@ -7,7 +7,12 @@ class Politica(ABC):
     @abstractmethod
     def seleccionar_accion(self, entorno, epsilon, Q):
         """
-        :return Selecciona una acción siguiendo la politica seleccionada
+        Selecciona una acción
+
         :parameter Q La matriz Q del agente
         :param entorno El entorno en el que se está seleccionando la accion
         """
+
+class EpsilonGreedy(Politica):
+    def seleccionar_accion(self, entorno, epsilon, Q):
+        pass
