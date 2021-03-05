@@ -14,16 +14,6 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="EntornoWidget" name="entornoWidget" native="true">
-    <property name="geometry">
-     <rect>
-      <x>180</x>
-      <y>150</y>
-      <width>401</width>
-      <height>401</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="lineEdit">
     <property name="geometry">
      <rect>
@@ -57,6 +47,16 @@
      <string>TextLabel</string>
     </property>
    </widget>
+   <widget class="EntornoWidget" name="entorno" native="true">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>80</y>
+      <width>761</width>
+      <height>491</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -74,7 +74,7 @@
   <customwidget>
    <class>EntornoWidget</class>
    <extends>QWidget</extends>
-   <header>EntornoWidget</header>
+   <header>entornoWidget</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

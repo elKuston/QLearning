@@ -38,11 +38,14 @@ class Agente:
             time.sleep(1)
         print("Problema completado en {} pasos".format(pasos))
 
-    def entrenar(self, alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media):
+    def entrenar(self, alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media, politica):
         qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
-        qlearning.entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media, self)
+        qlearning.callback_entrenamiento_inicio_paso = self.esperar
+        qlearning.entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media, self, politica)
 
-
+    def esperar(self):
+        pass
+        #time.sleep(0.1)
 
 
 

@@ -9,5 +9,5 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
     def __init__(self, tamano, agente):
         super().__init__()
         uic.loadUi('prueba.ui', self)
-        self.entornoWidget.configurar(tamano, agente)
+        self.entorno.configurar(tamano, agente)
         self.repaint()

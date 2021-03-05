@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, uic
 import sys
-from EntornoWidget import EntornoWidget
+from entornoWidget import EntornoWidget
 import qlearning
 import numpy as np
 from Agente import Agente

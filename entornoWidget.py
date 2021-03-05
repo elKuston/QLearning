@@ -36,6 +36,7 @@ class EntornoWidget(QtWidgets.QWidget):
 
     def __init__(self, tamano = 0, agente=None):
         super().__init__()
+        print("eoeeoooooo")
         if agente is not None and tamano != 0:
             self.configurar(tamano, agente)
 
@@ -105,23 +106,22 @@ class EntornoWidget(QtWidgets.QWidget):
         #switch direcciones
         #Ahora mismo dibuja en negro las flechas mayores que 0 o, si todas son negativas, la que tenga mayor valor, y el resto en rojo (las negativas)
         if direccion.upper() == 'U':#Arriba
-            incr_y = -LONGITUD_FLECHAS*abs(q_estado[qlearning.ACCION_ARRIBA])/max_abs
-            if q_estado[qlearning.ACCION_ARRIBA] < 0 and max_index != qlearning.ACCION_ARRIBA:
-                color = COLOR_FLECHAS_NEGATIVAS
+            valor_q = q_estado[qlearning.ACCION_ARRIBA]
+            incr_y = -LONGITUD_FLECHAS*abs(valor_q)/max_abs
         elif direccion.upper() == 'D':#Abajo
-            incr_y = LONGITUD_FLECHAS*abs(q_estado[qlearning.ACCION_ARRIBA])/max_abs
-            if q_estado[qlearning.ACCION_ABAJO] < 0 and max_index != qlearning.ACCION_ABAJO:
-                color = COLOR_FLECHAS_NEGATIVAS
+            valor_q = q_estado[qlearning.ACCION_ABAJO]
+            incr_y = LONGITUD_FLECHAS*abs(valor_q)/max_abs
         elif direccion.upper() == 'L':#izquierda
-            incr_x = -LONGITUD_FLECHAS*abs(q_estado[qlearning.ACCION_IZQUIERDA])/max_abs
-            if q_estado[qlearning.ACCION_IZQUIERDA] < 0 and max_index != qlearning.ACCION_IZQUIERDA:
-                color = COLOR_FLECHAS_NEGATIVAS
+            valor_q = q_estado[qlearning.ACCION_IZQUIERDA]
+            incr_x = -LONGITUD_FLECHAS*abs(valor_q)/max_abs
         elif direccion.upper() == 'R':#Derecha
-            incr_x = LONGITUD_FLECHAS*abs(q_estado[qlearning.ACCION_IZQUIERDA])/max_abs
-            if q_estado[qlearning.ACCION_DERECHA] < 0 and max_index != qlearning.ACCION_DERECHA:
-                color = COLOR_FLECHAS_NEGATIVAS
+            valor_q = q_estado[qlearning.ACCION_DERECHA]
+            incr_x = LONGITUD_FLECHAS*abs(valor_q)/max_abs
         else:
             raise ValueError('Direccion {} no reconocida'.format(direccion))
+
+        if valor_q < 0:  # and max_index != qlearning.ACCION_DERECHA:
+            color = COLOR_FLECHAS_NEGATIVAS
 
         self.__dibujar_flecha(x_origen, y_origen, x_origen+incr_x, y_origen+incr_y, painter, color)
 
@@ -147,3 +147,4 @@ class EntornoWidget(QtWidgets.QWidget):
             punta_flecha.lineTo(p_base_1[0], p_base_1[1])
             punta_flecha.lineTo(x_destino, y_destino)
             painter.fillPath(punta_flecha, QtGui.QBrush(color))
+

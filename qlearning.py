@@ -23,7 +23,7 @@ callback_entrenamiento_exito = vacio  # Se ejecuta al llegar al estado objetivo
 callback_entrenamiento_fracaso = vacio  # Se ejecuta al llegar a un estado final no objetivo
 callback_enternamiento_inicio_episodio = vacio  # Lo primero que se ejecuta al empezar un nuevo episodio
 callback_enternamiento_fin_episodio = vacio  # Lo último que se ejecuta al finalizar un episodio
-callback_entrenamiento_inicio_entrenamiento = vacio  #Lo primero que se ejecuta al llamar a la función entrenamiento
+callback_entrenamiento_inicio_entrenamiento = vacio  # Lo primero que se ejecuta al llamar a la función entrenamiento
 callback_entrenamiento_fin_entrenamiento = vacio  # Lo último que se ejcuta al finalizar el entrenamiento
 
 
@@ -57,7 +57,7 @@ def ejecutar(entorno, Q):
     return recompensa
 
 
-def entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media, agente):
+def entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media, agente, politica, modificar_recompensa=True):
     """Entrena el agente utilizando Q-Learning y devuelve la matriz Q obtenida
 
 
@@ -78,6 +78,7 @@ def entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_med
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
 
     max = -sys.maxsize  #Inicializar al valor más pequeño posible
+    decays = False
     for episodio in range(episodios): #Repetir el problema tantas veces como episodios
         callback_enternamiento_inicio_episodio()
         agente.estado = agente.entorno.reset()#Reiniciamos el entorno en cada episodio
@@ -88,21 +89,18 @@ def entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_med
             print("Entrenando... (episodio: {})".format(episodio))
         while not es_final: #Mientras no lleguemos a un estado final
             callback_entrenamiento_inicio_paso()
-            if random.uniform(0, 1) < epsilon: #Tomamos una acción aleatoria con probabilidad epsilon
-                accion = agente.entorno.action_space.sample()
-                # print("Accion aleatoria ", accion)
-            else: #Con probabilidad (1-epsilon) elegimos la mejor acción según la matriz Q
-                accion = np.argmax(agente.Q[agente.estado]) # argmax nos devuelve el índice del mayor elemento del array
-                # print("Accion seleccionada ", entorno, accion)
+            accion = politica.seleccionar_accion(agente, epsilon)
 
             estado_siguiente, recompensa, es_final, info = agente.entorno.step(accion)  # Calcular el siguiente estado
-            if not es_final:
-                recompensa = -0.0001#Dar pasos tiene un coste (buscamos el camino mínimo)
-            elif recompensa == 0: #Estado final con recompensa 0 -> agujero
-                recompensa = -1#Castigamos caerse al agujero
-                callback_entrenamiento_fracaso()
-            else:  #Final y con recompensa -> estado objetivo
-                callback_entrenamiento_exito()
+            if modificar_recompensa:
+                if not es_final:
+                    recompensa = -0.0001#Dar pasos tiene un coste (buscamos el camino mínimo)
+                elif recompensa == 0: #Estado final con recompensa 0 -> agujero
+                    recompensa = -1#Castigamos caerse al agujero
+                    callback_entrenamiento_fracaso()
+                else:  #Final y con recompensa -> estado objetivo
+                    decays = True
+                    callback_entrenamiento_exito()
                 #Q[estado_siguiente][:] = np.full(entorno.action_space.n, recompensa)  #Si el estado (siguiente) es el objetivo, ponemos que para todas las acciones tiene la recompensa del estado objetivo
             #     recompensa = 1
             callback_entrenamiento_recompensa()
@@ -114,7 +112,8 @@ def entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_med
             pasos+=1
             # controlador.actualizarVista()
             callback_entrenamiento_fin_paso()
-        epsilon*=0.9
+        if decays:
+            epsilon*=0.9  # DECAY TODO
         ultimas_recompensas[episodio%n_episodios_media] = recompensa_total
         media = np.mean(ultimas_recompensas)
         if media>max:
