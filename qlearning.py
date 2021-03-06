@@ -57,13 +57,12 @@ def ejecutar(entorno, Q):
     return recompensa
 
 
-def entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media, agente, politica, modificar_recompensa=True):
+def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agente, politica, modificar_recompensa=True):
     """Entrena el agente utilizando Q-Learning y devuelve la matriz Q obtenida
 
 
     :param alpha: Tasa de aprendizaje
     :param gamma: Determina cuánta importancia tienen las recompensas de los nuevos self.estados
-    :param epsilon: La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
     :param recompensa_media: La recompensa media para la que se considera que el problema está resuelto
     :param n_episodios_media: El número de episodios sobre el que se calcula la recompensa media (p. ej. los últimos 20 episodios)
     :param agente: el agente
