@@ -77,7 +77,6 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
 
     max = -sys.maxsize  #Inicializar al valor más pequeño posible
-    decays = False
     for episodio in range(episodios): #Repetir el problema tantas veces como episodios
         callback_enternamiento_inicio_episodio()
         agente.estado = agente.entorno.reset()#Reiniciamos el entorno en cada episodio
@@ -88,7 +87,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
             print("Entrenando... (episodio: {})".format(episodio))
         while not es_final: #Mientras no lleguemos a un estado final
             callback_entrenamiento_inicio_paso()
-            accion = politica.seleccionar_accion(agente, epsilon)
+            accion = politica.seleccionar_accion(agente)
 
             estado_siguiente, recompensa, es_final, info = agente.entorno.step(accion)  # Calcular el siguiente estado
             if modificar_recompensa:
@@ -98,7 +97,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
                     recompensa = -1#Castigamos caerse al agujero
                     callback_entrenamiento_fracaso()
                 else:  #Final y con recompensa -> estado objetivo
-                    decays = True
+                    politica.habilitar_variacion()
                     callback_entrenamiento_exito()
                 #Q[estado_siguiente][:] = np.full(entorno.action_space.n, recompensa)  #Si el estado (siguiente) es el objetivo, ponemos que para todas las acciones tiene la recompensa del estado objetivo
             #     recompensa = 1
@@ -111,8 +110,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
             pasos+=1
             # controlador.actualizarVista()
             callback_entrenamiento_fin_paso()
-        if decays:
-            epsilon*=0.9  # DECAY TODO
+        politica.variar_parametro()
         ultimas_recompensas[episodio%n_episodios_media] = recompensa_total
         media = np.mean(ultimas_recompensas)
         if media>max:
