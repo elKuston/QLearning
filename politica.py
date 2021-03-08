@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import random
-import math
-import sys
 
 
 class Politica(ABC):

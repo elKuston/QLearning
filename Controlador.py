@@ -16,7 +16,7 @@ gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos 
 epsilon = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
 t = 999999
 
-episodios = 10000  # Las "rondas" de entrenamiento
+episodios = 10000000000  # Las "rondas" de entrenamiento
 recompensa_media = 0.78  # Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
 n_episodios_media = 100
 
@@ -29,7 +29,7 @@ class Controlador():
         self.vista = EntornoWidget(8, agt)
         self.vista.show()
         tp = QThreadPool()
-        sp = SegundoPlano(agt.entrenar,alpha, gamma, episodios, recompensa_media, n_episodios_media, EpsilonGreedy(1, 0.9))
+        sp = SegundoPlano(agt.entrenar, alpha, gamma, episodios, recompensa_media, n_episodios_media, SoftMax(1))
         # agt.entrenar( alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
         tp.start(sp)
         print("ENTRENAMIENTO FINALIZADO")
