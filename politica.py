@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import random
+import math
 
 
 class Politica(ABC):
@@ -121,18 +122,42 @@ class SoftMax(Politica):
 
 
 class UpperConfidenceBound(Politica):
-    def __init__(self, agente, H, variacion_parametro, semilla_random=0):
-        super().__init__(agente, H, variacion_parametro, semilla_random)
+    def __init__(self, agente, H, T, semilla_random=0):
+        """
+
+        :param agente: El agente que se desea entrenar
+        :param H: Número de pasos por episodio
+        :param T: Número de pasos totales (de todos los episodios)
+        :param semilla_random: Semilla para la generación de números aleatorios (En este algoritmo no se utilizan, pero al heredar de Política es necesario mantener el parámetro)
+        """
+        super().__init__(agente, H, T, semilla_random)
         self.H = H
+        self.T = T
         self.N = np.zeros([agente.entorno.observation_space.n, agente.entorno.action_space.n])
+        self.V = np.full(agente.entorno.observation_space.n, 0)
 
 
 
-    def inicializar_q(self):
-        super().inicializar_q(self.agente, self.H)
+
+    def inicializar_q(self, valor=1000):
+        super().inicializar_q(self.H)
+
+    def actualizar_q(self, accion, estado_siguiente, recompensa, alpha_no_se_usa, gamma):
+        self.N[self.agente.estado, accion] += 1
+        t = self.N[self.agente.estado, accion]
+        alpha = (self.H + 1)/(self.H + t)
+        c = 1  # TODO no tengo nidea de qué es c pero asumo que será alguna constante y aquí dejo esto puesto pa implementar el algoritmo mientras lo averiguo xd
+        p = 1  # TODO otra cosa que no tengo npi xd
+        lg = math.log10(self.agente.entorno.observation_space.n*self.agente.entorno.action_space.n*self.T/p)
+        b_t = c * math.sqrt(self.H**3*lg/t)
+        self.agente.Q[self.agente.estado, accion] = (1-alpha)*self.agente.Q[self.agente.estado, accion] + alpha * (recompensa + self.V[estado_siguiente] + b_t)
+        self.V[self.agente.estado] = min(self.H, np.max(self.agente.Q[self.agente.estado]))  # El mínimo entre H y el máximo valor del estado
+
 
     def seleccionar_accion(self):
-        pass
+        # Elegimos la mejor acción según la matriz Q
+        accion = np.argmax(self.agente.Q[self.agente.estado])  # argmax nos devuelve el índice del mayor elemento del array
+        return accion
 
     def variar_parametro(self):
         pass
