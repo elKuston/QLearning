@@ -36,7 +36,7 @@ def main():
     recompensa_media = 0.78 #Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
     n_episodios_media = 100
 
-    Q = entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
+    entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
     entorno = gym.make(nombre_entorno)
     ejecutar(entorno, Q)
     entorno.close()
@@ -72,11 +72,10 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
         agente.entorno = gym.make(nombre_entorno)
     agente.entorno._max_episode_steps = episodios+1
     if agente.Q is None:
-        agente.Q = np.zeros([agente.entorno.observation_space.n, agente.entorno.action_space.n]) #Una matriz que relaciona cada acción y self.estado con su valor. Inicializada a 0
+        politica.inicializar_q()
 
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
 
-    max = -sys.maxsize  #Inicializar al valor más pequeño posible
     for episodio in range(episodios): #Repetir el problema tantas veces como episodios
         callback_enternamiento_inicio_episodio()
         agente.estado = agente.entorno.reset()#Reiniciamos el entorno en cada episodio
@@ -87,7 +86,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
             print("Entrenando... (episodio: {})".format(episodio))
         while not es_final: #Mientras no lleguemos a un estado final
             callback_entrenamiento_inicio_paso()
-            accion = politica.seleccionar_accion(agente)
+            accion = politica.seleccionar_accion()
 
             estado_siguiente, recompensa, es_final, info = agente.entorno.step(accion)  # Calcular el siguiente estado
             if modificar_recompensa:
@@ -99,22 +98,17 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
                 else:  #Final y con recompensa -> estado objetivo
                     politica.habilitar_variacion()
                     callback_entrenamiento_exito()
-                #Q[estado_siguiente][:] = np.full(entorno.action_space.n, recompensa)  #Si el estado (siguiente) es el objetivo, ponemos que para todas las acciones tiene la recompensa del estado objetivo
-            #     recompensa = 1
             callback_entrenamiento_recompensa()
             recompensa_total += recompensa
-            max_siguiente = np.max(agente.Q[estado_siguiente])  # El mejor valor que podríamos obtener yendo al estado estado_siguiente
-            agente.Q[agente.estado, accion] = (1-alpha) * agente.Q[agente.estado, accion] + alpha*(recompensa + gamma*max_siguiente) #aplicamos la formula del Q-Learning
+            politica.actualizar_q(accion, estado_siguiente, recompensa, alpha, gamma)
 
             agente.estado = estado_siguiente
-            pasos+=1
+            pasos += 1
             # controlador.actualizarVista()
             callback_entrenamiento_fin_paso()
         politica.variar_parametro()
         ultimas_recompensas[episodio%n_episodios_media] = recompensa_total
         media = np.mean(ultimas_recompensas)
-        if media>max:
-            max = media
         if media>=recompensa_media:
             print("El problema ha sido resuelto en {} episodios".format(episodio))
             print("recompensa media obtenida últimos {} episodios".format(n_episodios_media), media)

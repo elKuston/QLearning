@@ -4,16 +4,35 @@ import random
 
 
 class Politica(ABC):
-    def __init__(self, parametro, variacion_parametro, semilla_random=0):
+    def __init__(self, agente, parametro, variacion_parametro, semilla_random=0):
+        self.agente = agente
         self.parametro = parametro
         self.semilla = semilla_random
         self.variacion_parametro = variacion_parametro
         self.variacion_habilitada = False
 
+    def inicializar_q(self, valor=0):
+        """
+        Inicializa la matriz Q del agente con valor
+        :param valor: El valor con el que se inicializa la matriz
+        """
+        self.agente.Q = np.full([self.agente.entorno.observation_space.n, self.agente.entorno.action_space.n], valor)
+
+    def actualizar_q(self, accion, estado_siguiente, recompensa, alpha, gamma):
+        """
+        Actualiza el valor de la matriz Q tras el cambio de estado
+        :param accion: La acción realizada por el agente
+        :param estado_siguiente: El estado al que ha llegado el agente tras realizar la acción
+        :param recompensa: La recompensa obtenida al realizar la acción
+        :param alpha: Tasa de aprendizaje
+        :param gamma: Tasa de descuento
+        """
+        max_siguiente = np.max(self.agente.Q[estado_siguiente])  # El mejor valor que podríamos obtener yendo al estado estado_siguiente
+        self.agente.Q[self.agente.estado, accion] = (1-alpha) * self.agente.Q[self.agente.estado, accion] + alpha*(recompensa + gamma*max_siguiente)  # aplicamos la formula del Q-Learning
+
     def habilitar_variacion(self, habilitada=True):
         """
         Habilita o deshabilita la variación del parámetro con el tiempo. Si está deshabilitada, variar_parametro() no tendrá efecto
-        :return:
         """
         self.variacion_habilitada = habilitada
 
@@ -21,27 +40,24 @@ class Politica(ABC):
     def variar_parametro(self):
         """
         Varia el parámetro de la variante
-        :return:
         """
 
     @abstractmethod
-    def seleccionar_accion(self, agente):
+    def seleccionar_accion(self):
         """
         Selecciona una acción
-
-        :parameter agente: El objeto Agente que se está entrenando
         """
 
 
 class EpsilonGreedy(Politica):
-    def __init__(self, epsilon, decaimiento_epsilon=1, semilla_random=0):
+    def __init__(self, agente, epsilon, decaimiento_epsilon=1, semilla_random=0):
         """
 
         :param epsilon: La probabilidad de exploración aleatoria
         :param decaimiento_epsilon: El factor con el que se decrementa la variable epsilon Deberá estar en [0,1). 1 significa que epsilon es constante.
         :param semilla_random: La semilla para la generación de números aleatorios
         """
-        super().__init__(epsilon, decaimiento_epsilon, semilla_random)
+        super().__init__(agente, epsilon, decaimiento_epsilon, semilla_random)
 
     def variar_parametro(self):
         """
@@ -50,7 +66,7 @@ class EpsilonGreedy(Politica):
         if self.variacion_habilitada:
             self.parametro *= self.variacion_parametro  # Epsilon decae exponencialmente
 
-    def seleccionar_accion(self, agente):
+    def seleccionar_accion(self):
         """
         Con una probabilidad epsilon selecciona una acción aleatoria de todas las posibles, y con probabilidad (1-epsilon) selecciona la que proporciona mejor recompensa estimada según Q
         :param agente: El agente que se está entrenando
@@ -58,20 +74,20 @@ class EpsilonGreedy(Politica):
         """
         epsilon = self.parametro
         if random.uniform(0, 1) < epsilon: #Tomamos una acción aleatoria con probabilidad epsilon
-            accion = agente.entorno.action_space.sample()
+            accion = self.agente.entorno.action_space.sample()
         else: #Con probabilidad (1-epsilon) elegimos la mejor acción según la matriz Q
-            accion = np.argmax(agente.Q[agente.estado]) # argmax nos devuelve el índice del mayor elemento del array
+            accion = np.argmax(self.agente.Q[self.agente.estado]) # argmax nos devuelve el índice del mayor elemento del array
         return accion
 
 
 class SoftMax(Politica):
-    def __init__(self, t, decremento_t=0, semilla_random=0):
+    def __init__(self, agente, t, decremento_t=0, semilla_random=0):
         """
         :param t: La temperatura. Valores altos de t harán que todas las acciones tengan probabilidades similares de ser seleccionadas, mientras que valores próximos al 0 harán que la acción con mayor recompensa estimada sea la que tenga la mayor probabilidad de ser seleccionada
         :param decremento_t: La tasa de decremento de la temperatura. 0 significa que la temperatura es constante
         :param semilla_random: La semilla para el generador de números aleatorios
         """
-        super().__init__(t, decremento_t, semilla_random)
+        super().__init__(agente, t, decremento_t, semilla_random)
 
     def variar_parametro(self):
         """
@@ -81,13 +97,13 @@ class SoftMax(Politica):
         if self.variacion_habilitada:
             self.parametro -= self.variacion_parametro  # T disminuye linealmente
 
-    def seleccionar_accion(self, agente):
+    def seleccionar_accion(self):
         """
         Aplica la función softmax y elige una acción aleatoriamente, donde las acciones con mayor recompensa estimada tienen más probabilidad de ser elegidas (la magnitud de esto variará según el parámetro T)
         :param agente: El agente que se está entrenando
         :return: La acción seleccionada
         """
-        probabilidades = self.__softmax(agente.Q[agente.estado], self.parametro)
+        probabilidades = self.__softmax(self.agente.Q[self.agente.estado], self.parametro)
         rand = random.uniform(0, 1)
         # Vamos a elegir la acción que se corresponde con esa probabilidad. Para ello cogemos la primera accion cuya probabilidad acumulada supera al número aleatorio
         i = 0
@@ -103,3 +119,20 @@ class SoftMax(Politica):
         softmax = probabilidades/suma
         return softmax
 
+
+class UpperConfidenceBound(Politica):
+    def __init__(self, agente, H, variacion_parametro, semilla_random=0):
+        super().__init__(agente, H, variacion_parametro, semilla_random)
+        self.H = H
+        self.N = np.zeros([agente.entorno.observation_space.n, agente.entorno.action_space.n])
+
+
+
+    def inicializar_q(self):
+        super().inicializar_q(self.agente, self.H)
+
+    def seleccionar_accion(self):
+        pass
+
+    def variar_parametro(self):
+        pass

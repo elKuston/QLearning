@@ -29,7 +29,7 @@ class Controlador():
         self.vista = EntornoWidget(8, agt)
         self.vista.show()
         tp = QThreadPool()
-        sp = SegundoPlano(agt.entrenar, alpha, gamma, episodios, recompensa_media, n_episodios_media, SoftMax(1))
+        sp = SegundoPlano(agt.entrenar, alpha, gamma, episodios, recompensa_media, n_episodios_media, EpsilonGreedy(agt, 1, 0.9))
         # agt.entrenar( alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
         tp.start(sp)
         print("ENTRENAMIENTO FINALIZADO")
