@@ -59,6 +59,6 @@ class Agente:
             text = "Pause"
         else:
             text = "Play"
-        self.controlador.vista.playButton.setText(text)
+        self.controlador.play_pause_button.setText(text)
 
 from Controlador import Controlador
