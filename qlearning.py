@@ -70,7 +70,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     callback_entrenamiento_inicio_entrenamiento()
     if agente.entorno is None:
         agente.entorno = gym.make(nombre_entorno)
-    # agente.entorno._max_episode_steps = episodios+1
+    agente.entorno._max_episode_steps = episodios+1
     if agente.Q is None:
         politica.inicializar_q()
 

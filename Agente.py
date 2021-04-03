@@ -45,7 +45,7 @@ class Agente:
 
     def esperar(self):
         pass
-        #time.sleep(0.1)
+        #time.sleep(0.00000001)
 
 
 
