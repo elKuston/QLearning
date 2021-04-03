@@ -54,3 +54,9 @@ class Controlador():
 
     def togglePlay(self):
         self.agt.toggle_play()
+        # TODO textos hardcodeados que hay que quitar
+        if self.agt.playing:
+            text = 'Pause'
+        else:
+            text = 'Play'
+        self.play_pause_button.setText(text)

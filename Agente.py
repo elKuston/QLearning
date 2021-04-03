@@ -23,7 +23,7 @@ class Agente:
         self.estado = None
         self.controlador = controlador
         self.Q = np.zeros([entorno.observation_space.n, entorno.action_space.n])  # El agente contiene su matriz Q
-        self.__played = True
+        self.playing = True
 
     def resolver(self):
         self.entorno._max_episode_steps = 9999999999999
@@ -50,15 +50,10 @@ class Agente:
         self.esperar_play()
 
     def esperar_play(self):
-        while not self.__played:
+        while not self.playing:
             time.sleep(0.01) # TODO esto es una basura de espera activa pero poco a poco, ya lo cambiaremos - Edit: parece que no hay muchas otras manera de hacerlo :/ porque parece que habria que crear un thread.Event para cada evento al que quiero que reaccione el programa y xd eso son muchos eventos cmo para pasar tantos parametros
 
     def toggle_play(self):
-        self.__played = not self.__played
-        if self.__played:
-            text = "Pause"
-        else:
-            text = "Play"
-        self.controlador.play_pause_button.setText(text)
+        self.playing = not self.playing
 
 from Controlador import Controlador
