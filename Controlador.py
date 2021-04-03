@@ -45,5 +45,4 @@ class Controlador():
         print("paso")
 
     def togglePlay(self):
-        print("PLAY TOGGLED from Controlador")
         self.agt.toggle_play()

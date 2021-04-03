@@ -51,10 +51,14 @@ class Agente:
 
     def esperar_play(self):
         while not self.__played:
-            time.sleep(0.01) # TODO esto es una basura de espera activa pero poco a poco ya lo cambiaremos - Edit: parece que no hay muchas otras manera de hacerlo :/ porque parece que habria que crear un thread.Event para cada evento al que quiero que reaccione el programa y xd eso son muchos eventos cmo para pasar tantos parametros
+            time.sleep(0.01) # TODO esto es una basura de espera activa pero poco a poco, ya lo cambiaremos - Edit: parece que no hay muchas otras manera de hacerlo :/ porque parece que habria que crear un thread.Event para cada evento al que quiero que reaccione el programa y xd eso son muchos eventos cmo para pasar tantos parametros
 
     def toggle_play(self):
         self.__played = not self.__played
-        print("TOGGLING PLKAY from agente")
+        if self.__played:
+            text = "Pause"
+        else:
+            text = "Play"
+        self.controlador.vista.playButton.setText(text)
 
 from Controlador import Controlador

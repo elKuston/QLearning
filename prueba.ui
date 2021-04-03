@@ -21,7 +21,7 @@
     <item row="0" column="0">
      <widget class="QPushButton" name="playButton">
       <property name="text">
-       <string>Toggle play</string>
+       <string>Pause</string>
       </property>
      </widget>
     </item>
