@@ -23,6 +23,7 @@ class Agente:
         self.estado = None
         self.controlador = controlador
         self.Q = np.zeros([entorno.observation_space.n, entorno.action_space.n])  # El agente contiene su matriz Q
+        self.__played = True
 
     def resolver(self):
         self.entorno._max_episode_steps = 9999999999999
@@ -41,12 +42,19 @@ class Agente:
     def entrenar(self, alpha, gamma, episodios, recompensa_media, n_episodios_media, politica):
         qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
+        #qlearning.callback_entrenamiento_inicio_paso = self.esperar_play
         qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, politica)
 
     def esperar(self):
-        pass
-        #time.sleep(0.00000001)
+        time.sleep(0.01)
+        self.esperar_play()
 
+    def esperar_play(self):
+        while not self.__played:
+            time.sleep(0.01) # TODO esto es una basura de espera activa pero poco a poco ya lo cambiaremos - Edit: parece que no hay muchas otras manera de hacerlo :/ porque parece que habria que crear un thread.Event para cada evento al que quiero que reaccione el programa y xd eso son muchos eventos cmo para pasar tantos parametros
 
+    def toggle_play(self):
+        self.__played = not self.__played
+        print("TOGGLING PLKAY from agente")
 
 from Controlador import Controlador

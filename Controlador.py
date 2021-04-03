@@ -24,12 +24,13 @@ class Controlador():
     def __init__(self):
         app = QtWidgets.QApplication(sys.argv)
         entorno = gym.make(qlearning.nombre_entorno)
-        agt = Agente(entorno, self)
-        self.vista = VentanaPrincipal(8, agt)
+        self.agt = Agente(entorno, self)
+        self.vista = VentanaPrincipal(8, self.agt)
+        self.vista.playButton.clicked.connect(self.togglePlay)
         #self.vista = EntornoWidget(8, agt)
         self.vista.show()
         tp = QThreadPool()
-        sp = SegundoPlano(agt.entrenar, alpha, gamma, episodios, recompensa_media, n_episodios_media, EpsilonGreedy(agt, epsilon, 0.9))
+        sp = SegundoPlano(self.agt.entrenar, alpha, gamma, episodios, recompensa_media, n_episodios_media, EpsilonGreedy(self.agt, epsilon, 0.9))
         # agt.entrenar( alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
         tp.start(sp)
         print("ENTRENAMIENTO FINALIZADO")
@@ -42,3 +43,7 @@ class Controlador():
 
     def paso(self):
         print("paso")
+
+    def togglePlay(self):
+        print("PLAY TOGGLED from Controlador")
+        self.agt.toggle_play()

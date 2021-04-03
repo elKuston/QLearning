@@ -15,21 +15,15 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="EntornoWidget" name="entorno" native="true"/>
+    </item>
     <item row="0" column="0">
-     <widget class="QLabel" name="label">
+     <widget class="QPushButton" name="playButton">
       <property name="text">
-       <string>TextLabel</string>
+       <string>Toggle play</string>
       </property>
      </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QComboBox" name="comboBox"/>
-    </item>
-    <item row="0" column="2">
-     <widget class="QLineEdit" name="lineEdit"/>
-    </item>
-    <item row="1" column="0" colspan="3">
-     <widget class="EntornoWidget" name="entorno" native="true"/>
     </item>
    </layout>
   </widget>
@@ -51,6 +45,9 @@
    <extends>QWidget</extends>
    <header>entornoWidget</header>
    <container>1</container>
+   <slots>
+    <slot>togglePlay()</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
