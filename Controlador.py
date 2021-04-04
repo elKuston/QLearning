@@ -22,21 +22,22 @@ n_episodios_media = 100
 
 class Controlador():
     def __init__(self):
+        self.thread_pool = QThreadPool()
+        self.segundo_plano = None
         app = QtWidgets.QApplication(sys.argv)
         entorno = gym.make(qlearning.nombre_entorno)
         self.agt = Agente(entorno, self)
+        self.agt.set_politica(EpsilonGreedy(self.agt, epsilon, 0.9))
         self.vista = VentanaPrincipal(8, self.agt)
 
         self.__map_buttons()
         self.play_pause_button.clicked.connect(self.togglePlay)
         self.espera_slider.valueChanged.connect(self.cambiar_tiempo_espera)
+        self.reset_button.clicked.connect(self.reset)
+        self.entrenar_button.clicked.connect(self.entrenar)
 
         #self.vista = EntornoWidget(8, agt)
         self.vista.show()
-        tp = QThreadPool()
-        sp = SegundoPlano(self.agt.entrenar, alpha, gamma, episodios, recompensa_media, n_episodios_media, EpsilonGreedy(self.agt, epsilon, 0.9))
-        # agt.entrenar( alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
-        tp.start(sp)
         print("ENTRENAMIENTO FINALIZADO")
         # sp = SegundoPlano(agt.resolver)
         #tp.start(sp)
@@ -49,6 +50,8 @@ class Controlador():
 
         self.play_pause_button = self.vista.playButton
         self.espera_slider = self.vista.esperaSlider
+        self.reset_button = self.vista.resetButton
+        self.entrenar_button = self.vista.entrenarButton
 
     def actualizarVista(self):
         self.vista.update()
@@ -67,3 +70,19 @@ class Controlador():
 
     def cambiar_tiempo_espera(self):
         self.agt.cambiar_tiempo_espera(self.espera_slider.value()/1000)  #Dividimos entre 1000 porque en la GUI está puesto en ms y aquí o queremos en s
+
+    def reset(self):
+        self.agt.reset()
+        if self.agt.playing:
+            self.togglePlay()
+
+    def entrenar(self):
+        if self.thread_pool.activeThreadCount()>0:  #Si segundo plano ya esta ejecutandose
+            self.thread_pool.cancel(self.segundo_plano)
+        self.segundo_plano = SegundoPlano(self.agt.entrenar, alpha, gamma, episodios, recompensa_media, n_episodios_media)
+        # agt.entrenar( alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
+        self.thread_pool.start(self.segundo_plano)
+
+        if not self.agt.playing:
+            self.togglePlay()
+

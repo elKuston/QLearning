@@ -56,6 +56,13 @@ def ejecutar(entorno, Q):
     print("Problema completado en {} pasos".format(pasos))
     return recompensa
 
+def reset(agente, politica, episodios=99999999999999999999):
+    if agente.entorno is None:
+        agente.entorno = gym.make(nombre_entorno)
+    agente.entorno._max_episode_steps = episodios+1
+    if agente.Q is None:
+        print("NOne")
+        politica.inicializar_q()
 
 def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agente, politica, modificar_recompensa=True):
     """Entrena el agente utilizando Q-Learning y devuelve la matriz Q obtenida
@@ -68,11 +75,13 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     :param agente: el agente
     """
     callback_entrenamiento_inicio_entrenamiento()
-    if agente.entorno is None:
-        agente.entorno = gym.make(nombre_entorno)
-    agente.entorno._max_episode_steps = episodios+1
-    if agente.Q is None:
-        politica.inicializar_q()
+    #if agente.entorno is None:
+     #   agente.entorno = gym.make(nombre_entorno)
+    #agente.entorno._max_episode_steps = episodios+1
+    #if agente.Q is None:
+     #   print("NOne")
+      #  politica.inicializar_q()
+    reset(agente, politica, episodios)
 
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
 
@@ -109,11 +118,11 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
         politica.variar_parametro()
         ultimas_recompensas[episodio%n_episodios_media] = recompensa_total
         media = np.mean(ultimas_recompensas)
-        if media>=recompensa_media:
+        if media >= recompensa_media:
             print("El problema ha sido resuelto en {} episodios".format(episodio))
             print("recompensa media obtenida últimos {} episodios".format(n_episodios_media), media)
             break
-        #print(self.Q)
+        print(agente.Q)
         if episodio % n_episodios_media == 0:
             print("recompensa media obtenida últimos {} episodios".format(n_episodios_media), media)
         callback_enternamiento_fin_episodio()

@@ -18,6 +18,7 @@ class Politica(ABC):
         :param valor: El valor con el que se inicializa la matriz
         """
         self.agente.Q = np.full([self.agente.entorno.observation_space.n, self.agente.entorno.action_space.n], valor)
+        print(self.agente.Q)
 
     def actualizar_q(self, accion, estado_siguiente, recompensa, alpha, gamma):
         """
