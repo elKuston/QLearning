@@ -26,8 +26,11 @@ class Controlador():
         entorno = gym.make(qlearning.nombre_entorno)
         self.agt = Agente(entorno, self)
         self.vista = VentanaPrincipal(8, self.agt)
+
         self.__map_buttons()
         self.play_pause_button.clicked.connect(self.togglePlay)
+        self.espera_slider.valueChanged.connect(self.cambiar_tiempo_espera)
+
         #self.vista = EntornoWidget(8, agt)
         self.vista.show()
         tp = QThreadPool()
@@ -41,10 +44,11 @@ class Controlador():
 
     def __map_buttons(self):
         '''
-        Cogemos todos los componentes de la vista y los guardamos como variables locales del controlador. Duplicamos espcio en memoria pero es mucho mas comodo y total tampoco estamos en los 90 con 64kb de ram xd
+        Cogemos todos los componentes de la vista y los guardamos como variables locales del controlador. Duplicamos espacio en memoria pero es mucho mas comodo y total tampoco estamos en los 90 con 64kb de ram xd
         '''
 
         self.play_pause_button = self.vista.playButton
+        self.espera_slider = self.vista.esperaSlider
 
     def actualizarVista(self):
         self.vista.update()
@@ -60,3 +64,6 @@ class Controlador():
         else:
             text = 'Play'
         self.play_pause_button.setText(text)
+
+    def cambiar_tiempo_espera(self):
+        self.agt.cambiar_tiempo_espera(self.espera_slider.value()/1000)  #Dividimos entre 1000 porque en la GUI está puesto en ms y aquí o queremos en s
