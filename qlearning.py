@@ -56,15 +56,17 @@ def ejecutar(entorno, Q):
     print("Problema completado en {} pasos".format(pasos))
     return recompensa
 
-def reset(agente, politica, episodios=99999999999999999999):
+
+def reset(agente, episodios=200):
     if agente.entorno is None:
         agente.entorno = gym.make(nombre_entorno)
-    agente.entorno._max_episode_steps = episodios+1
+        agente.entorno._max_episode_steps = episodios+1
     if agente.Q is None:
         print("NOne")
-        politica.inicializar_q()
+        agente.politica.inicializar_q()
 
-def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agente, politica, modificar_recompensa=True):
+
+def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agente, modificar_recompensa=True):
     """Entrena el agente utilizando Q-Learning y devuelve la matriz Q obtenida
 
 
@@ -81,7 +83,8 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     #if agente.Q is None:
      #   print("NOne")
       #  politica.inicializar_q()
-    reset(agente, politica, episodios)
+    politica = agente.politica
+    reset(agente, episodios)
 
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
 
@@ -122,7 +125,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
             print("El problema ha sido resuelto en {} episodios".format(episodio))
             print("recompensa media obtenida últimos {} episodios".format(n_episodios_media), media)
             break
-        print(agente.Q)
+        #print(agente.Q)
         if episodio % n_episodios_media == 0:
             print("recompensa media obtenida últimos {} episodios".format(n_episodios_media), media)
         callback_enternamiento_fin_episodio()

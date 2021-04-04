@@ -34,6 +34,7 @@ class Agente:
         self.Q = np.zeros([entorno.observation_space.n, entorno.action_space.n])  # El agente contiene su matriz Q
         self.playing = True
         self.tiempo_espera = 0.01
+        self.politica = None  # Algo hay que poner para que no se queje de que está definido fuera del init
 
     def resolver(self):
         self.entorno._max_episode_steps = 9999999999999
