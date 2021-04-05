@@ -85,12 +85,11 @@ class Controlador:
     def entrenar(self):
         #if self.thread_pool.activeThreadCount() > 0:  # Si segundo plano ya esta ejecutandose
          #   self.thread_pool.cancel(self.segundo_plano)
-        if self.segundo_plano is not None:
-            self.segundo_plano.terminate()
+        #if self.segundo_plano is not None:
+        #    self.segundo_plano.terminate()
+        self.reset()
         self.segundo_plano = SegundoPlano(self.agt.entrenar, alpha, gamma, episodios, recompensa_media,
                                           n_episodios_media)
-        # agt.entrenar( alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
-        #self.thread_pool.start(self.segundo_plano)
         self.segundo_plano.start()
 
         if not self.agt.playing:
