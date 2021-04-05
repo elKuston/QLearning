@@ -1,9 +1,11 @@
 import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import Qt
+from entornoWidget import EntornoWidget
 
 alto = 300
 ancho = 400
+
 
 class VentanaPrincipal(QtWidgets.QMainWindow):
     def __init__(self, tamano, agente):
@@ -11,3 +13,13 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
         uic.loadUi('prueba.ui', self)
         self.entorno.configurar(tamano, agente)
         self.repaint()
+
+    def cambiar_entorno(self, tamano, agente):
+        print (self.entorno.tamano)
+        nuevo_entorno = EntornoWidget(tamano, agente)
+        padre = self.entorno.parent().layout()
+        padre.replaceWidget(self.entorno, nuevo_entorno)
+        self.entorno.deleteLater()
+        self.entorno = nuevo_entorno
+        self.repaint()
+

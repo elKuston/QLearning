@@ -20,22 +20,30 @@ n_episodios_media = 100
 
 class Controlador:
     def __init__(self):
-        self.thread_pool = QThreadPool()
+        #self.thread_pool = QThreadPool()
         self.segundo_plano = None
         app = QtWidgets.QApplication(sys.argv)
-        entorno = gym.make(qlearning.nombre_entorno)
+        self.nombres_mapas = ['4x4', '8x8']
+        self.mapas = ['FrozenLake-v0', 'FrozenLake8x8-v0']
+        self.tamanos_mapas = [4, 8]
+        self.mapa_default = 0
+        entorno = gym.make(self.mapas[self.mapa_default])
         self.agt = Agente(entorno, self)
-        self.algoritmos = [EpsilonGreedy(self.agt, epsilon, 0.9),
-                           SoftMax(self.agt, 10000, 50),
-                           UpperConfidenceBound(self.agt, 64, 64 * episodios)]
+        self.algoritmos = self.get_algoritmos()
         self.nombres_algoritmos = ['Epsilon Greedy', 'SoftMax', 'Upper Confidence Bound (UCB)']
+
         self.agt.set_politica(self.algoritmos[0])  # EpsilonGreedy(self.agt, epsilon, 0.9))
-        self.vista = VentanaPrincipal(8, self.agt)
+        self.vista = VentanaPrincipal(self.tamanos_mapas[self.mapa_default], self.agt)
 
         self.__map_ui()
 
         self.vista.show()
         sys.exit(app.exec_())
+
+    def get_algoritmos(self):
+        return [EpsilonGreedy(self.agt, epsilon, 0.9),
+                           SoftMax(self.agt, 10000, 50),
+                           UpperConfidenceBound(self.agt, 64, 64 * episodios)]
 
     def __map_ui(self):
         '''
@@ -48,6 +56,7 @@ class Controlador:
         self.entrenar_button = self.vista.entrenarButton
         self.dropdown_algoritmo = self.vista.dropdownAlgoritmo
         self.resolver_button = self.vista.resolverButton
+        self.dropdown_mapa = self.vista.dropdownMapa
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -57,6 +66,9 @@ class Controlador:
         self.dropdown_algoritmo.addItems(self.nombres_algoritmos)
         self.dropdown_algoritmo.currentIndexChanged.connect(self.cambiar_algoritmo)
         self.resolver_button.clicked.connect(self.resolver)
+        self.dropdown_mapa.addItems(self.nombres_mapas)
+        self.dropdown_mapa.setCurrentIndex(self.mapa_default)
+        self.dropdown_mapa.currentIndexChanged.connect(self.cambiar_mapa)
 
     def actualizarVista(self):
         self.vista.update()
@@ -98,8 +110,6 @@ class Controlador:
             self.togglePlay()
 
     def cambiar_algoritmo(self):
-        print(self.dropdown_algoritmo.currentIndex())
-        print(self.algoritmos[1])
         self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
         self.reset()
 
@@ -107,4 +117,11 @@ class Controlador:
         self.__cancelar_segundo_plano()
         self.segundo_plano = SegundoPlano(self.agt.resolver)
         self.segundo_plano.start()
-        #self.agt.resolver()
+
+    def cambiar_mapa(self):
+        entorno = gym.make(self.mapas[self.dropdown_mapa.currentIndex()])
+        self.agt = Agente(entorno, self)
+        self.algoritmos = self.get_algoritmos()
+        self.cambiar_algoritmo()
+        self.vista.cambiar_entorno(self.tamanos_mapas[self.dropdown_mapa.currentIndex()], self.agt)
+

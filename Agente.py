@@ -33,11 +33,13 @@ class Agente:
         self.politica = None  # Algo hay que poner para que no se queje de que está definido fuera del init
 
     def resolver(self):
+        qlearning.callback_ejecucion_inicio_ejecucion = self.controlador.actualizarVista
         qlearning.callback_ejecucion_fin_paso = self.controlador.actualizarVista
         qlearning.callback_ejecucion_inicio_paso = self.esperar
         qlearning.ejecutar(self)
 
     def entrenar(self, alpha, gamma, episodios, recompensa_media, n_episodios_media):
+        qlearning.callback_entrenamiento_inicio_entrenamiento = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
         print(self.Q)

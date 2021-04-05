@@ -9,7 +9,7 @@ ACCION_ABAJO = 1
 ACCION_DERECHA = 2
 ACCION_ARRIBA = 3
 
-nombre_entorno = 'FrozenLake8x8-v0'
+nombre_entorno = 'FrozenLake-v0'
 
 
 def vacio():
@@ -48,11 +48,11 @@ callback_ejecucion_fin_ejecucion = vacio  # Lo último que se ejcuta al finaliza
 
 
 def ejecutar(agente):
-    callback_ejecucion_inicio_ejecucion()
     agente.entorno._max_episode_steps = 9999999999999
     fin = False
     agente.estado = agente.entorno.reset()
     pasos = 0
+    callback_ejecucion_inicio_ejecucion()
     while not fin:
         callback_ejecucion_inicio_paso()
         #agente.entorno.render()
@@ -68,6 +68,7 @@ def ejecutar(agente):
 
 def reset(agente, episodios=200):
     if agente.entorno is None:
+        print("uando nombre_entorno")
         agente.entorno = gym.make(nombre_entorno)
         agente.entorno._max_episode_steps = episodios+1
     if agente.Q is None:
@@ -85,7 +86,6 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     :param n_episodios_media: El número de episodios sobre el que se calcula la recompensa media (p. ej. los últimos 20 episodios)
     :param agente: el agente
     """
-    callback_entrenamiento_inicio_entrenamiento()
     #if agente.entorno is None:
      #   agente.entorno = gym.make(nombre_entorno)
     #agente.entorno._max_episode_steps = episodios+1
@@ -96,6 +96,8 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     reset(agente, episodios)
 
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
+
+    callback_entrenamiento_inicio_entrenamiento()
 
     for episodio in range(episodios): #Repetir el problema tantas veces como episodios
         callback_enternamiento_inicio_episodio()
