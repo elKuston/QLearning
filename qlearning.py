@@ -26,34 +26,43 @@ callback_enternamiento_fin_episodio = vacio  # Lo último que se ejecuta al fina
 callback_entrenamiento_inicio_entrenamiento = vacio  # Lo primero que se ejecuta al llamar a la función entrenamiento
 callback_entrenamiento_fin_entrenamiento = vacio  # Lo último que se ejcuta al finalizar el entrenamiento
 
-
-def main():
-    alpha = 0.618 #Tasa de aprendizaje
-    gamma = 0.99 #Determina cuánta importancia tienen las recompensas de los nuevos estados 
-    epsilon = 0.2 #La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
-
-    episodios = 10000 #Las "rondas" de entrenamiento
-    recompensa_media = 0.78 #Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
-    n_episodios_media = 100
-
-    entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
-    entorno = gym.make(nombre_entorno)
-    ejecutar(entorno, Q)
-    entorno.close()
+callback_ejecucion_inicio_paso = vacio  # Lo primero que se ejcuta al inciarse el paso de ejecución
+callback_ejecucion_fin_paso = vacio  # Lo último que se ejecuta en el paso de ejecución
+callback_ejecucion_inicio_ejecucion = vacio  # Lo primero que se ejecuta al llamar a la función ejecutar
+callback_ejecucion_fin_ejecucion = vacio  # Lo último que se ejcuta al finalizar el entrenamiento
 
 
-def ejecutar(entorno, Q):
-    entorno._max_episode_steps = 9999999999999
+# def main():
+#     alpha = 0.618 #Tasa de aprendizaje
+#     gamma = 0.99 #Determina cuánta importancia tienen las recompensas de los nuevos estados
+#     epsilon = 0.2 #La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
+#
+#     episodios = 10000 #Las "rondas" de entrenamiento
+#     recompensa_media = 0.78 #Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
+#     n_episodios_media = 100
+#
+#     entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
+#     entorno = gym.make(nombre_entorno)
+#     ejecutar(entorno, Q)
+#     entorno.close()
+
+
+def ejecutar(agente):
+    callback_ejecucion_inicio_ejecucion()
+    agente.entorno._max_episode_steps = 9999999999999
     fin = False
-    estado = entorno.reset()
+    agente.estado = agente.entorno.reset()
     pasos = 0
     while not fin:
-        entorno.render()
-        accion = np.argmax(Q[estado])
-        estado, recompensa, fin, info = entorno.step(accion)
+        callback_ejecucion_inicio_paso()
+        #agente.entorno.render()
+        accion = np.argmax(agente.Q[agente.estado])
+        agente.estado, recompensa, fin, info = agente.entorno.step(accion)
         pasos+=1
-    entorno.render()
+        callback_ejecucion_fin_paso()
+    #entorno.render()
     print("Problema completado en {} pasos".format(pasos))
+    callback_ejecucion_fin_ejecucion()
     return recompensa
 
 
@@ -134,5 +143,5 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     callback_entrenamiento_fin_entrenamiento()
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

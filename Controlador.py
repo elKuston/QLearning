@@ -47,6 +47,7 @@ class Controlador:
         self.reset_button = self.vista.resetButton
         self.entrenar_button = self.vista.entrenarButton
         self.dropdown_algoritmo = self.vista.dropdownAlgoritmo
+        self.resolver_button = self.vista.resolverButton
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -55,6 +56,7 @@ class Controlador:
         self.entrenar_button.clicked.connect(self.entrenar)
         self.dropdown_algoritmo.addItems(self.nombres_algoritmos)
         self.dropdown_algoritmo.currentIndexChanged.connect(self.cambiar_algoritmo)
+        self.resolver_button.clicked.connect(self.resolver)
 
     def actualizarVista(self):
         self.vista.update()
@@ -75,18 +77,18 @@ class Controlador:
         self.agt.cambiar_tiempo_espera(
             self.espera_slider.value() / 1000)  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí o queremos en s
 
-    def reset(self):
+    def __cancelar_segundo_plano(self):
         if self.segundo_plano is not None:
             self.segundo_plano.terminate()
+
+    def reset(self):
+        self.__cancelar_segundo_plano()
         self.agt.reset()
         if self.agt.playing:
             self.togglePlay()
+        self.actualizarVista()
 
     def entrenar(self):
-        #if self.thread_pool.activeThreadCount() > 0:  # Si segundo plano ya esta ejecutandose
-         #   self.thread_pool.cancel(self.segundo_plano)
-        #if self.segundo_plano is not None:
-        #    self.segundo_plano.terminate()
         self.reset()
         self.segundo_plano = SegundoPlano(self.agt.entrenar, alpha, gamma, episodios, recompensa_media,
                                           n_episodios_media)
@@ -100,3 +102,9 @@ class Controlador:
         print(self.algoritmos[1])
         self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
         self.reset()
+
+    def resolver(self):
+        self.__cancelar_segundo_plano()
+        self.segundo_plano = SegundoPlano(self.agt.resolver)
+        self.segundo_plano.start()
+        #self.agt.resolver()

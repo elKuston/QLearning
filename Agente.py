@@ -1,11 +1,7 @@
 import numpy as np
 import gym
 import qlearning
-import random
-import sys
 import time
-
-from politica import Politica
 
 
 class Agente:
@@ -22,7 +18,7 @@ class Agente:
         self.estado = None
         #self.entorno.reset()
         self.Q = np.zeros([self.entorno.observation_space.n, self.entorno.action_space.n])  # El agente contiene su matriz Q TODO esto no deberia ser necesario, se deberia inicializar desde la politica
-        qlearning.reset(self, self.politica)  #TODO
+        qlearning.reset(self)
 
     def set_politica(self, politica):
         self.politica = politica
@@ -37,23 +33,13 @@ class Agente:
         self.politica = None  # Algo hay que poner para que no se queje de que está definido fuera del init
 
     def resolver(self):
-        self.entorno._max_episode_steps = 9999999999999
-        fin = False
-        estado = self.entorno.reset()
-        pasos = 0
-        print("Resolviendo problema")
-        while not fin:
-            accion = np.argmax(self.Q[estado])
-            estado, recompensa, fin, info = self.entorno.step(accion)
-            pasos+=1
-            self.controlador.actualizarVista()
-            time.sleep(1)
-        print("Problema completado en {} pasos".format(pasos))
+        qlearning.callback_ejecucion_fin_paso = self.controlador.actualizarVista
+        qlearning.callback_ejecucion_inicio_paso = self.esperar
+        qlearning.ejecutar(self)
 
     def entrenar(self, alpha, gamma, episodios, recompensa_media, n_episodios_media):
         qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
-        #qlearning.callback_entrenamiento_inicio_paso = self.esperar_play
         print(self.Q)
         qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, self.politica)
 
