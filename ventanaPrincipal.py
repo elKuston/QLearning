@@ -15,7 +15,6 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
         self.repaint()
 
     def cambiar_entorno(self, tamano, agente):
-        print (self.entorno.tamano)
         nuevo_entorno = EntornoWidget(tamano, agente)
         padre = self.entorno.parent().layout()
         padre.replaceWidget(self.entorno, nuevo_entorno)

@@ -116,7 +116,8 @@ class SoftMax(Politica):
         return i
 
     def __softmax(self, q_estado, t):
-        probabilidades = np.exp(q_estado/t)
+        #probabilidades = np.exp(q_estado/t)  #Con temp
+        probabilidades = np.exp(q_estado)  #Sin temp
         suma = np.sum(probabilidades)
         softmax = probabilidades/suma
         return softmax

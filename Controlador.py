@@ -1,10 +1,8 @@
 from PyQt5 import QtWidgets, uic
 import sys
-import qlearning
 from Agente import Agente
 import gym
 from SegundoPlano import SegundoPlano
-from PyQt5.QtCore import QThreadPool
 
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanaPrincipal import VentanaPrincipal
@@ -13,14 +11,14 @@ alpha = 0.1  # Tasa de aprendizaje
 gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
 epsilon = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
 
-episodios = 10000  # Las "rondas" de entrenamiento
+episodios = 100000000000000  # Las "rondas" de entrenamiento
 recompensa_media = 0.78  # Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
 n_episodios_media = 100
 
 
 class Controlador:
     def __init__(self):
-        #self.thread_pool = QThreadPool()
+        # self.thread_pool = QThreadPool()
         self.segundo_plano = None
         app = QtWidgets.QApplication(sys.argv)
         self.nombres_mapas = ['4x4', '8x8']
@@ -32,7 +30,7 @@ class Controlador:
         self.algoritmos = self.get_algoritmos()
         self.nombres_algoritmos = ['Epsilon Greedy', 'SoftMax', 'Upper Confidence Bound (UCB)']
 
-        self.agt.set_politica(self.algoritmos[0])  # EpsilonGreedy(self.agt, epsilon, 0.9))
+        self.agt.set_politica(self.algoritmos[0])
         self.vista = VentanaPrincipal(self.tamanos_mapas[self.mapa_default], self.agt)
 
         self.__map_ui()
@@ -42,13 +40,13 @@ class Controlador:
 
     def get_algoritmos(self):
         return [EpsilonGreedy(self.agt, epsilon, 0.9),
-                           SoftMax(self.agt, 10000, 50),
-                           UpperConfidenceBound(self.agt, 64, 64 * episodios)]
+                SoftMax(self.agt, 10000, 50),
+                UpperConfidenceBound(self.agt, 64, 64 * episodios)]
 
     def __map_ui(self):
-        '''
+        """
         Cogemos todos los componentes de la vista y los guardamos como variables locales del controlador. Duplicamos espacio en memoria pero es mucho mas comodo y total tampoco estamos en los 90 con 64kb de ram xd
-        '''
+        """
         # Convertimos las variables de la vista a variables locales
         self.play_pause_button = self.vista.playButton
         self.espera_slider = self.vista.esperaSlider
@@ -87,7 +85,7 @@ class Controlador:
 
     def cambiar_tiempo_espera(self):
         self.agt.cambiar_tiempo_espera(
-            self.espera_slider.value() / 1000)  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí o queremos en s
+            self.espera_slider.value() / 1000)  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
 
     def __cancelar_segundo_plano(self):
         if self.segundo_plano is not None:
@@ -118,10 +116,12 @@ class Controlador:
         self.segundo_plano = SegundoPlano(self.agt.resolver)
         self.segundo_plano.start()
 
+        if not self.agt.playing:
+            self.togglePlay()
+
     def cambiar_mapa(self):
         entorno = gym.make(self.mapas[self.dropdown_mapa.currentIndex()])
         self.agt = Agente(entorno, self)
         self.algoritmos = self.get_algoritmos()
         self.cambiar_algoritmo()
         self.vista.cambiar_entorno(self.tamanos_mapas[self.dropdown_mapa.currentIndex()], self.agt)
-
