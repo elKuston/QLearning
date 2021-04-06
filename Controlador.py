@@ -90,6 +90,7 @@ class Controlador:
     def __cancelar_segundo_plano(self):
         if self.segundo_plano is not None:
             self.segundo_plano.terminate()
+        self.segundo_plano = None  #TODO esto lo pongo aqui para poder deshabilitar el boton play después de un reset o cuando no haya un entrenamiento en proceso (está feo pero no es funcional,prioridad baja)
 
     def reset(self):
         self.__cancelar_segundo_plano()

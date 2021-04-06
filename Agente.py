@@ -17,7 +17,6 @@ class Agente:
     def reset(self):
         self.estado = None
         #self.entorno.reset()
-        self.Q = np.zeros([self.entorno.observation_space.n, self.entorno.action_space.n])  # El agente contiene su matriz Q TODO esto no deberia ser necesario, se deberia inicializar desde la politica
         qlearning.reset(self)
 
     def set_politica(self, politica):

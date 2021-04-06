@@ -71,9 +71,7 @@ def reset(agente, episodios=200):
         print("uando nombre_entorno")
         agente.entorno = gym.make(nombre_entorno)
         agente.entorno._max_episode_steps = episodios+1
-    if agente.Q is None:
-        print("NOne")
-        agente.politica.inicializar_q()
+    agente.politica.inicializar_q()
 
 
 def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agente, modificar_recompensa=True):

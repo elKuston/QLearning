@@ -12,13 +12,13 @@ class Politica(ABC):
         self.variacion_parametro = variacion_parametro
         self.variacion_habilitada = False
 
-    def inicializar_q(self, valor=0):
+    def inicializar_q(self, **kwargs):
         """
         Inicializa la matriz Q del agente con valor
         :param valor: El valor con el que se inicializa la matriz
         """
-        self.agente.Q = np.full([self.agente.entorno.observation_space.n, self.agente.entorno.action_space.n], valor)
-        print(self.agente.Q)
+        valor = kwargs.get('valor', 0)
+        self.agente.Q = np.full([self.agente.entorno.observation_space.n, self.agente.entorno.action_space.n], valor, dtype='float64')
 
     def actualizar_q(self, accion, estado_siguiente, recompensa, alpha, gamma):
         """
@@ -141,8 +141,8 @@ class UpperConfidenceBound(Politica):
 
 
 
-    def inicializar_q(self, valor=1000):
-        super().inicializar_q(self.H)
+    def inicializar_q(self):
+        super().inicializar_q(valor=self.H)
 
     def actualizar_q(self, accion, estado_siguiente, recompensa, alpha_no_se_usa, gamma):
         self.N[self.agente.estado, accion] += 1
