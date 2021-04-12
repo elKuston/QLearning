@@ -5,8 +5,7 @@ import gym
 from SegundoPlano import SegundoPlano
 
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
-from ventanaPrincipal import VentanaPrincipal
-from ventanaMetricas import VentanaMetricas
+from ventanas import VentanaPrincipal, VentanaMetricas
 
 alpha = 0.1  # Tasa de aprendizaje
 gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados

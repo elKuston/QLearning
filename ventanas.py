@@ -22,3 +22,10 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
         self.entorno = nuevo_entorno
         self.repaint()
 
+
+class VentanaMetricas(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('ventana_metricas.ui', self)
+        self.repaint()
+
