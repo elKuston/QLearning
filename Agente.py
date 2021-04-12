@@ -45,7 +45,8 @@ class Agente:
         qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, self.politica)
 
     def esperar(self):
-        if self.tiempo_espera >= 0.01:  # 10ms es lo mínimo que soporta (en windows) el time.sleep. Si nos piden menos, directamente no esperamos
+        #if self.tiempo_espera >= 0.01:  # 10ms es lo mínimo que soporta (en windows) el time.sleep. Si nos piden menos, directamente no esperamos
+        if self.tiempo_espera > 0: #Esperamos cualquier cosa excepto 0. Aunque es verdad que windows solo soporta 10ms, otros sistemas pueden ser mas precisos
             time.sleep(self.tiempo_espera)
         self.esperar_play()
 

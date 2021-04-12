@@ -6,6 +6,7 @@ from SegundoPlano import SegundoPlano
 
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanaPrincipal import VentanaPrincipal
+from ventanaMetricas import VentanaMetricas
 
 alpha = 0.1  # Tasa de aprendizaje
 gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
@@ -36,6 +37,8 @@ class Controlador:
         self.__map_ui()
 
         self.vista.show()
+        self.vista_metricas = VentanaMetricas()
+        self.vista_metricas.show()
         sys.exit(app.exec_())
 
     def get_algoritmos(self):
