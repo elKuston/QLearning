@@ -53,15 +53,17 @@ def ejecutar(agente):
     agente.estado = agente.entorno.reset()
     pasos = 0
     callback_ejecucion_inicio_ejecucion()
+    recompensa_total = 0
     while not fin:
         callback_ejecucion_inicio_paso()
         #agente.entorno.render()
         accion = np.argmax(agente.Q[agente.estado])
         agente.estado, recompensa, fin, info = agente.entorno.step(accion)
-        pasos+=1
+        recompensa_total += recompensa
+        pasos += 1
         callback_ejecucion_fin_paso()
     #entorno.render()
-    print("Problema completado en {} pasos".format(pasos))
+    agente.print_log("Problema completado en {} pasos; recompensa obtenida:{}".format(pasos, recompensa_total))
     callback_ejecucion_fin_ejecucion()
     return recompensa
 
@@ -104,7 +106,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
         pasos = 0 #Contador de los pasos que da el agente
         recompensa_total = 0
         if episodio%1000 == 0:
-            print("Entrenando... (episodio: {})".format(episodio))
+            agente.print_log('Entrenando... (episodio: {})'.format(episodio))
         while not es_final: #Mientras no lleguemos a un estado final
             callback_entrenamiento_inicio_paso()
             accion = politica.seleccionar_accion()
@@ -112,11 +114,11 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
             estado_siguiente, recompensa, es_final, info = agente.entorno.step(accion)  # Calcular el siguiente estado
             if modificar_recompensa:
                 if not es_final:
-                    recompensa = -0.0001#Dar pasos tiene un coste (buscamos el camino mínimo)
-                elif recompensa == 0: #Estado final con recompensa 0 -> agujero
-                    recompensa = -1#Castigamos caerse al agujero
+                    recompensa = -0.0001  # Dar pasos tiene un coste (buscamos el camino mínimo)
+                elif recompensa == 0:  # Estado final con recompensa 0 -> agujero
+                    recompensa = -1  # Castigamos caerse al agujero
                     callback_entrenamiento_fracaso()
-                else:  #Final y con recompensa -> estado objetivo
+                else:  # Final y con recompensa -> estado objetivo
                     politica.habilitar_variacion()
                     callback_entrenamiento_exito()
             callback_entrenamiento_recompensa()
@@ -128,15 +130,15 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
             # controlador.actualizarVista()
             callback_entrenamiento_fin_paso()
         politica.variar_parametro()
-        ultimas_recompensas[episodio%n_episodios_media] = recompensa_total
+        ultimas_recompensas[episodio % n_episodios_media] = recompensa_total
         media = np.mean(ultimas_recompensas)
         if media >= recompensa_media:
-            print("El problema ha sido resuelto en {} episodios".format(episodio))
-            print("recompensa media obtenida últimos {} episodios".format(n_episodios_media), media)
+            agente.print_log("El problema ha sido resuelto en {} episodios".format(episodio))
+            agente.print_log("recompensa media obtenida últimos {} episodios: {}".format(n_episodios_media, media))
             break
         #print(agente.Q)
         if episodio % n_episodios_media == 0:
-            print("recompensa media obtenida últimos {} episodios".format(n_episodios_media), media)
+            agente.print_log("recompensa media obtenida últimos {} episodios: {}".format(n_episodios_media, media))
         callback_enternamiento_fin_episodio()
     # entorno.close()#Cerrar el entorno tras el entrenamiento
     # return Q

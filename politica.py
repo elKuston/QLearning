@@ -97,7 +97,8 @@ class SoftMax(Politica):
 
         """
         if self.variacion_habilitada:
-            self.parametro -= self.variacion_parametro  # T disminuye linealmente
+            #self.parametro -= self.variacion_parametro  # T disminuye linealmente
+            self.parametro *= self.variacion_parametro
 
     def seleccionar_accion(self):
         """
@@ -113,11 +114,12 @@ class SoftMax(Politica):
         while rand > prob and i < len(probabilidades):
             i += 1
             prob += probabilidades[i]
+        #print('rand', rand, 'cumsum', np.cumsum(probabilidades), 'seleccionado', i)
         return i
 
     def __softmax(self, q_estado, t):
-        #probabilidades = np.exp(q_estado/t)  #Con temp
-        probabilidades = np.exp(q_estado)  #Sin temp
+        probabilidades = np.exp(q_estado/t)  #Con temp
+        #probabilidades = np.exp(q_estado)  #Sin temp
         suma = np.sum(probabilidades)
         softmax = probabilidades/suma
         return softmax

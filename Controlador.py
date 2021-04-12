@@ -40,7 +40,7 @@ class Controlador:
 
     def get_algoritmos(self):
         return [EpsilonGreedy(self.agt, epsilon, 0.9),
-                SoftMax(self.agt, 10000, 50),
+                SoftMax(self.agt, 0.5, 0.99),
                 UpperConfidenceBound(self.agt, 64, 64 * episodios)]
 
     def __map_ui(self):
@@ -55,6 +55,8 @@ class Controlador:
         self.dropdown_algoritmo = self.vista.dropdownAlgoritmo
         self.resolver_button = self.vista.resolverButton
         self.dropdown_mapa = self.vista.dropdownMapa
+        self.log_box = self.vista.logTextbox
+        self.print_log('Q-Learning')
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -126,3 +128,10 @@ class Controlador:
         self.algoritmos = self.get_algoritmos()
         self.cambiar_algoritmo()
         self.vista.cambiar_entorno(self.tamanos_mapas[self.dropdown_mapa.currentIndex()], self.agt)
+
+    def print_log(self, text):
+        print(text)
+        if self.log_box is not None:
+            self.log_box.append(text)
+        #if self.was_max:
+        self.log_box.verticalScrollBar().setValue(self.log_box.verticalScrollBar().maximum())

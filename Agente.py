@@ -41,7 +41,7 @@ class Agente:
         qlearning.callback_entrenamiento_inicio_entrenamiento = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
-        print(self.Q)
+        #print(self.Q)
         qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, self.politica)
 
     def esperar(self):
@@ -58,5 +58,11 @@ class Agente:
 
     def cambiar_tiempo_espera(self, tiempo_espera):
         self.tiempo_espera = tiempo_espera
+
+    def print_log(self, text):
+        if self.controlador is not None:
+            self.controlador.print_log(text)
+        else:
+            print("Error: Controlador is None")
 
 from Controlador import Controlador
