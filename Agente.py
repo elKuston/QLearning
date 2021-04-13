@@ -1,7 +1,7 @@
 import numpy as np
-import gym
 import qlearning
 import time
+from frozenLake import FrozenLake
 
 
 class Agente:
@@ -22,7 +22,7 @@ class Agente:
     def set_politica(self, politica):
         self.politica = politica
 
-    def __init__(self, entorno: gym.Env, controlador):
+    def __init__(self, entorno: FrozenLake, controlador):
         self.entorno = entorno
         self.estado = None
         self.controlador = controlador

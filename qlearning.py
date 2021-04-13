@@ -9,7 +9,7 @@ ACCION_ABAJO = 1
 ACCION_DERECHA = 2
 ACCION_ARRIBA = 3
 
-nombre_entorno = 'FrozenLake-v0'
+#nombre_entorno = 'FrozenLake-v0'
 
 
 def vacio():
@@ -69,10 +69,10 @@ def ejecutar(agente):
 
 
 def reset(agente, episodios=200):
-    if agente.entorno is None:
-        print("uando nombre_entorno")
-        agente.entorno = gym.make(nombre_entorno)
-        agente.entorno._max_episode_steps = episodios+1
+    #if agente.entorno is None: # SHOULD NEVER HAPPEN
+        #print("uando nombre_entorno")
+        #agente.entorno = gym.make(nombre_entorno)
+        #agente.entorno._max_episode_steps = episodios+1
     agente.politica.inicializar_q()
 
 

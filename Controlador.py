@@ -1,7 +1,8 @@
 from PyQt5 import QtWidgets, uic
 import sys
 from Agente import Agente
-import gym
+#import gym
+import frozenLake
 from SegundoPlano import SegundoPlano
 
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
@@ -25,7 +26,8 @@ class Controlador:
         self.mapas = ['FrozenLake-v0', 'FrozenLake8x8-v0']
         self.tamanos_mapas = [4, 8]
         self.mapa_default = 0
-        entorno = gym.make(self.mapas[self.mapa_default])
+        #entorno = gym.make(self.mapas[self.mapa_default])
+        entorno = frozenLake.make(self.mapas[self.mapa_default])
         self.agt = Agente(entorno, self)
         self.algoritmos = self.get_algoritmos()
         self.nombres_algoritmos = ['Epsilon Greedy', 'SoftMax', 'Upper Confidence Bound (UCB)']
@@ -125,7 +127,8 @@ class Controlador:
             self.togglePlay()
 
     def cambiar_mapa(self):
-        entorno = gym.make(self.mapas[self.dropdown_mapa.currentIndex()])
+        #entorno = gym.make(self.mapas[self.dropdown_mapa.currentIndex()])
+        entorno = frozenLake.make(self.mapas[self.dropdown_mapa.currentIndex()])
         self.agt = Agente(entorno, self)
         self.algoritmos = self.get_algoritmos()
         self.cambiar_algoritmo()

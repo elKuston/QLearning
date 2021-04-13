@@ -17,21 +17,12 @@ GROSOR_FLECHA = 2
 RADIO_AGENTE = 50
 
 
-def obtener_mapa(entorno: gym.Env):
-    """"
-    Toma el entorno FrozenLake y lo convierte en una matriz de letras, siguiendo la misma representación que en el metodo render() del entorno: F-> casilla helada; H-> agujero;S-> Posicion inicial; G-> Posicion objetivo
-    """
-    mapa_str = entorno.render(mode='ansi')
-    mapa = [[x for x in j if (x.isalpha() and x.isupper())] for j in mapa_str.split("\n") if len(j) > 0]
-    return mapa
-
-
 class EntornoWidget(QtWidgets.QWidget):
 
     def configurar(self, tamano, agente):
         self.tamano = tamano
         self.agente = agente
-        self.mapa = obtener_mapa(agente.entorno)
+        self.mapa = agente.entorno.get_mapa()
         self.setFixedSize(TAMANO_BLOQUE*tamano+ESPACIO_ENTRE_BLOQUES*(tamano-1), TAMANO_BLOQUE*tamano+ESPACIO_ENTRE_BLOQUES*(tamano-1))
 
     def __init__(self, tamano = 0, agente=None):
