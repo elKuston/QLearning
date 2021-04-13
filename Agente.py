@@ -1,7 +1,7 @@
 import numpy as np
-import gym
 import qlearning
 import time
+from frozenLake import FrozenLake
 
 
 class Agente:
@@ -22,7 +22,7 @@ class Agente:
     def set_politica(self, politica):
         self.politica = politica
 
-    def __init__(self, entorno: gym.Env, controlador):
+    def __init__(self, entorno: FrozenLake, controlador):
         self.entorno = entorno
         self.estado = None
         self.controlador = controlador
@@ -41,7 +41,6 @@ class Agente:
         qlearning.callback_entrenamiento_inicio_entrenamiento = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
-        #print(self.Q)
         qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, self.politica)
 
     def esperar(self):

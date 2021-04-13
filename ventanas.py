@@ -1,6 +1,4 @@
-import sys
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtCore import Qt
 from entornoWidget import EntornoWidget
 
 alto = 300

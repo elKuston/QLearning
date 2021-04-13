@@ -1,15 +1,9 @@
-import random
-import sys
-
-import gym
 import numpy as np
 
 ACCION_IZQUIERDA = 0
 ACCION_ABAJO = 1
 ACCION_DERECHA = 2
 ACCION_ARRIBA = 3
-
-nombre_entorno = 'FrozenLake-v0'
 
 
 def vacio():
@@ -30,21 +24,6 @@ callback_ejecucion_inicio_paso = vacio  # Lo primero que se ejcuta al inciarse e
 callback_ejecucion_fin_paso = vacio  # Lo último que se ejecuta en el paso de ejecución
 callback_ejecucion_inicio_ejecucion = vacio  # Lo primero que se ejecuta al llamar a la función ejecutar
 callback_ejecucion_fin_ejecucion = vacio  # Lo último que se ejcuta al finalizar el entrenamiento
-
-
-# def main():
-#     alpha = 0.618 #Tasa de aprendizaje
-#     gamma = 0.99 #Determina cuánta importancia tienen las recompensas de los nuevos estados
-#     epsilon = 0.2 #La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
-#
-#     episodios = 10000 #Las "rondas" de entrenamiento
-#     recompensa_media = 0.78 #Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
-#     n_episodios_media = 100
-#
-#     entrenar(alpha, gamma, epsilon, episodios, recompensa_media, n_episodios_media)
-#     entorno = gym.make(nombre_entorno)
-#     ejecutar(entorno, Q)
-#     entorno.close()
 
 
 def ejecutar(agente):
@@ -68,11 +47,7 @@ def ejecutar(agente):
     return recompensa
 
 
-def reset(agente, episodios=200):
-    if agente.entorno is None:
-        print("uando nombre_entorno")
-        agente.entorno = gym.make(nombre_entorno)
-        agente.entorno._max_episode_steps = episodios+1
+def reset(agente):
     agente.politica.inicializar_q()
 
 
@@ -86,14 +61,9 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     :param n_episodios_media: El número de episodios sobre el que se calcula la recompensa media (p. ej. los últimos 20 episodios)
     :param agente: el agente
     """
-    #if agente.entorno is None:
-     #   agente.entorno = gym.make(nombre_entorno)
-    #agente.entorno._max_episode_steps = episodios+1
-    #if agente.Q is None:
-     #   print("NOne")
-      #  politica.inicializar_q()
+
     politica = agente.politica
-    reset(agente, episodios)
+    reset(agente)
 
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
 
@@ -143,7 +113,3 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     # entorno.close()#Cerrar el entorno tras el entrenamiento
     # return Q
     callback_entrenamiento_fin_entrenamiento()
-
-
-# if __name__ == '__main__':
-#     main()
