@@ -41,7 +41,6 @@ class Agente:
         qlearning.callback_entrenamiento_inicio_entrenamiento = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
-        #print(self.Q)
         qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, self.politica)
 
     def esperar(self):
