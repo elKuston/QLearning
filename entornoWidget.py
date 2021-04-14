@@ -27,7 +27,6 @@ class EntornoWidget(QtWidgets.QWidget):
 
     def __init__(self, tamano = 0, agente=None):
         super().__init__()
-        print("eoeeoooooo")
         if agente is not None and tamano != 0:
             self.configurar(tamano, agente)
 

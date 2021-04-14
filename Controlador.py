@@ -20,9 +20,9 @@ class Controlador:
     def __init__(self):
         self.segundo_plano = None
         app = QtWidgets.QApplication(sys.argv)
-        self.nombres_mapas = ['4x4', '8x8']
-        self.mapas = ['FrozenLake-v0', 'FrozenLake8x8-v0']
-        self.tamanos_mapas = [4, 8]
+        self.nombres_mapas = frozenLake.nombres_mapas()
+        self.mapas = frozenLake.mapas()
+        self.tamanos_mapas = frozenLake.tamanos_mapas()
         self.mapa_default = 0
         entorno = frozenLake.make(self.mapas[self.mapa_default])
         self.agt = Agente(entorno, self)

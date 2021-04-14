@@ -7,8 +7,20 @@ MAPA_8X8 = 'FrozenLake8x8-v0'
 def make(nombre_mapa):
     return FrozenLake(nombre_mapa)
 
-class FrozenLake:
 
+def mapas():
+    return [MAPA_4X4, MAPA_8X8]
+
+
+def nombres_mapas():
+    return ['4x4', '8x8']
+
+
+def tamanos_mapas():
+    return [4, 8]
+
+
+class FrozenLake:
     def __init__(self, nombre_mapa):
         self.frozen_lake = gym.make(nombre_mapa)
         self.observation_space = self.frozen_lake.observation_space
