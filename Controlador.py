@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets, uic
 import sys
+import time
 from Agente import Agente
 import gym
 from SegundoPlano import SegundoPlano
@@ -20,7 +21,7 @@ n_episodios_media = 100
 
 class Controlador:
     def __init__(self):
-        self.__init_log_buffer(1)
+        self.__init_log_buffer(10)
         self.segundo_plano = None
         app = QtWidgets.QApplication(sys.argv)
         self.nombres_mapas = ['4x4', '8x8']
@@ -38,6 +39,9 @@ class Controlador:
         self.__map_ui()
 
         self.vista.show()
+
+        self.render_buffer = 0.016  # En s, marca cuánto tiempo pasa entre actualizaciones (16ms = 60fps)
+        self.last_render = time.time()
         sys.exit(app.exec_())
 
     def get_algoritmos(self):
@@ -59,6 +63,7 @@ class Controlador:
         self.dropdown_mapa = self.vista.dropdownMapa
         self.log_box = self.vista.logTextbox
         self.print_log('Q-Learning')
+        self.flush_log()
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -73,7 +78,9 @@ class Controlador:
         self.dropdown_mapa.currentIndexChanged.connect(self.cambiar_mapa)
 
     def actualizarVista(self):
-        self.vista.update()
+        if time.time() - self.last_render >= self.render_buffer:
+            self.vista.update()
+            self.last_render = time.time()
 
     def paso(self):
         print("paso")
@@ -153,3 +160,6 @@ class Controlador:
         full_log = '\n'.join(self.log_buffer)
         self.log_box.append(full_log)
         self.__init_log_buffer(self.buffer_size)
+
+    def flush_log(self):
+        self.__clear_log_buffer()
