@@ -7,6 +7,8 @@ from SegundoPlano import SegundoPlano
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanaPrincipal import VentanaPrincipal
 
+LOG_BUFFER_MAX_SIZE = 5
+
 alpha = 0.1  # Tasa de aprendizaje
 gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
 epsilon = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
@@ -18,7 +20,7 @@ n_episodios_media = 100
 
 class Controlador:
     def __init__(self):
-        # self.thread_pool = QThreadPool()
+        self.log_buffer = []
         self.segundo_plano = None
         app = QtWidgets.QApplication(sys.argv)
         self.nombres_mapas = ['4x4', '8x8']
@@ -131,7 +133,22 @@ class Controlador:
 
     def print_log(self, text):
         print(text)
-        if self.log_box is not None:
-            self.log_box.append(text)
+        self.__add_to_log_buffer(text)
         #if self.was_max:
         self.log_box.verticalScrollBar().setValue(self.log_box.verticalScrollBar().maximum())
+
+    def __init_log_buffer(self):
+        self.log_buffer = []
+
+    def __add_to_log_buffer(self, text):
+        if self.__log_buffer_full():
+            self.__clear_log_buffer()
+        self.log_buffer.append(text)
+
+    def __log_buffer_full(self):
+        return len(self.log_buffer) == LOG_BUFFER_MAX_SIZE
+
+    def __clear_log_buffer(self):
+        full_log = '\n'.join(self.log_buffer)
+        self.log_box.append(full_log)
+        self.__init_log_buffer()
