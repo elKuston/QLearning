@@ -138,7 +138,7 @@ class Controlador:
     def print_log(self, text):
         print(text)
         self.__add_to_log_buffer(text)
-        #if self.was_max:
+        # TODO - Hacer que no baje abajo si no estaba antes abajo (es decir, si el user lo ha movido para mirar algo)
         self.log_box.verticalScrollBar().setValue(self.log_box.verticalScrollBar().maximum())
 
     def __init_log_buffer(self, buffer_size=LOG_BUFFER_DEFAULT_SIZE):
