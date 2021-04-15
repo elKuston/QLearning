@@ -4,6 +4,7 @@ import time
 from frozenLake import FrozenLake
 
 
+
 class Agente:
     def vacio(self):
         pass
@@ -31,6 +32,8 @@ class Agente:
         self.tiempo_espera = 0.01
         self.politica = None  # Algo hay que poner para que no se queje de que está definido fuera del init
 
+        self.ultimo_refresco = time.time()
+
     def resolver(self):
         qlearning.callback_ejecucion_inicio_ejecucion = self.controlador.actualizarVista
         qlearning.callback_ejecucion_fin_paso = self.controlador.actualizarVista
@@ -38,15 +41,16 @@ class Agente:
         qlearning.ejecutar(self)
 
     def entrenar(self, alpha, gamma, episodios, recompensa_media, n_episodios_media):
-        qlearning.callback_entrenamiento_inicio_entrenamiento = self.controlador.actualizarVista
-        qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
+        qlearning.callback_entrenamiento_inicio_entrenamiento = self.actualizar_vista
+        qlearning.callback_entrenamiento_fin_paso = self.actualizar_vista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
         qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, self.politica)
 
+    def actualizar_vista(self):
+        self.controlador.actualizarVista()
+
     def esperar(self):
-        #if self.tiempo_espera >= 0.01:  # 10ms es lo mínimo que soporta (en windows) el time.sleep. Si nos piden menos, directamente no esperamos
-        if self.tiempo_espera > 0: #Esperamos cualquier cosa excepto 0. Aunque es verdad que windows solo soporta 10ms, otros sistemas pueden ser mas precisos
-            time.sleep(self.tiempo_espera)
+        time.sleep(self.tiempo_espera)
         self.esperar_play()
 
     def esperar_play(self):
