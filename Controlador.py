@@ -21,7 +21,7 @@ n_episodios_media = 100
 
 class Controlador:
     def __init__(self):
-        self.__init_log_buffer(10)
+        self.__init_log_buffer(1)
         self.segundo_plano = None
         app = QtWidgets.QApplication(sys.argv)
         self.nombres_mapas = ['4x4', '8x8']
