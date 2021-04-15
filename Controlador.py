@@ -2,11 +2,11 @@ from PyQt5 import QtWidgets, uic
 import sys
 import time
 from Agente import Agente
-import gym
+import frozenLake
 from SegundoPlano import SegundoPlano
 
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
-from ventanaPrincipal import VentanaPrincipal
+from ventanas import VentanaPrincipal, VentanaMetricas
 
 LOG_BUFFER_DEFAULT_SIZE = 5
 
@@ -24,11 +24,11 @@ class Controlador:
         self.__init_log_buffer(1)
         self.segundo_plano = None
         app = QtWidgets.QApplication(sys.argv)
-        self.nombres_mapas = ['4x4', '8x8']
-        self.mapas = ['FrozenLake-v0', 'FrozenLake8x8-v0']
-        self.tamanos_mapas = [4, 8]
+        self.nombres_mapas = frozenLake.nombres_mapas()
+        self.mapas = frozenLake.mapas()
+        self.tamanos_mapas = frozenLake.tamanos_mapas()
         self.mapa_default = 0
-        entorno = gym.make(self.mapas[self.mapa_default])
+        entorno = frozenLake.make(self.mapas[self.mapa_default])
         self.agt = Agente(entorno, self)
         self.algoritmos = self.get_algoritmos()
         self.nombres_algoritmos = ['Epsilon Greedy', 'SoftMax', 'Upper Confidence Bound (UCB)']
@@ -39,9 +39,8 @@ class Controlador:
         self.__map_ui()
 
         self.vista.show()
-
-        self.render_buffer = 0.016  # En s, marca cuánto tiempo pasa entre actualizaciones (16ms = 60fps)
-        self.last_render = time.time()
+        self.vista_metricas = VentanaMetricas()
+        self.vista_metricas.show()
         sys.exit(app.exec_())
 
     def get_algoritmos(self):
@@ -78,9 +77,7 @@ class Controlador:
         self.dropdown_mapa.currentIndexChanged.connect(self.cambiar_mapa)
 
     def actualizarVista(self):
-        if time.time() - self.last_render >= self.render_buffer:
-            self.vista.update()
-            self.last_render = time.time()
+        self.vista.update()
 
     def paso(self):
         print("paso")
@@ -132,7 +129,7 @@ class Controlador:
             self.togglePlay()
 
     def cambiar_mapa(self):
-        entorno = gym.make(self.mapas[self.dropdown_mapa.currentIndex()])
+        entorno = frozenLake.make(self.mapas[self.dropdown_mapa.currentIndex()])
         self.agt = Agente(entorno, self)
         self.algoritmos = self.get_algoritmos()
         self.cambiar_algoritmo()
