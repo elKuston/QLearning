@@ -34,13 +34,13 @@ class Controlador:
         self.nombres_algoritmos = ['Epsilon Greedy', 'SoftMax', 'Upper Confidence Bound (UCB)']
 
         self.agt.set_politica(self.algoritmos[0])
-        self.vista = VentanaPrincipal(self.tamanos_mapas[self.mapa_default], self.agt)
+        self.vista = VentanaPrincipal(self.tamanos_mapas[self.mapa_default], self.agt, app.primaryScreen().size())
 
         self.__map_ui()
 
         self.vista.show()
-        self.vista_metricas = VentanaMetricas()
-        self.vista_metricas.show()
+        #self.vista_metricas = VentanaMetricas()
+        #self.vista_metricas.show()
         sys.exit(app.exec_())
 
     def get_algoritmos(self):

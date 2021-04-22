@@ -6,14 +6,15 @@ ancho = 400
 
 
 class VentanaPrincipal(QtWidgets.QMainWindow):
-    def __init__(self, tamano, agente):
+    def __init__(self, tamano, agente, pantalla):
         super().__init__()
+        self.pantalla = pantalla
         uic.loadUi('prueba.ui', self)
-        self.entorno.configurar(tamano, agente)
+        self.entorno.configurar(tamano, agente, pantalla)
         self.repaint()
 
     def cambiar_entorno(self, tamano, agente):
-        nuevo_entorno = EntornoWidget(tamano, agente)
+        nuevo_entorno = EntornoWidget(self.pantalla, tamano, agente)
         padre = self.entorno.parent().layout()
         padre.replaceWidget(self.entorno, nuevo_entorno)
         self.entorno.deleteLater()
