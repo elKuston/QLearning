@@ -94,18 +94,18 @@ class EntornoWidget(QtWidgets.QWidget):
         if max_abs == 0:
             max_abs = 1
 
-        #switch direcciones
-        #Ahora mismo dibuja en negro las flechas mayores que 0 o, si todas son negativas, la que tenga mayor valor, y el resto en rojo (las negativas)
-        if direccion.upper() == 'U':#Arriba
+        # switch direcciones
+        # Ahora mismo dibuja en negro las flechas mayores que 0 o, si todas son negativas, la que tenga mayor valor, y el resto en rojo (las negativas)
+        if direccion.upper() == 'U':  # Arriba
             valor_q = q_estado[qlearning.ACCION_ARRIBA]
             incr_y = -LONGITUD_FLECHAS*abs(valor_q)/max_abs
-        elif direccion.upper() == 'D':#Abajo
+        elif direccion.upper() == 'D':  # Abajo
             valor_q = q_estado[qlearning.ACCION_ABAJO]
             incr_y = LONGITUD_FLECHAS*abs(valor_q)/max_abs
-        elif direccion.upper() == 'L':#izquierda
+        elif direccion.upper() == 'L':  # izquierda
             valor_q = q_estado[qlearning.ACCION_IZQUIERDA]
             incr_x = -LONGITUD_FLECHAS*abs(valor_q)/max_abs
-        elif direccion.upper() == 'R':#Derecha
+        elif direccion.upper() == 'R':  # Derecha
             valor_q = q_estado[qlearning.ACCION_DERECHA]
             incr_x = LONGITUD_FLECHAS*abs(valor_q)/max_abs
         else:
