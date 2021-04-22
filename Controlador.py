@@ -63,6 +63,7 @@ class Controlador:
         self.log_box = self.vista.logTextbox
         self.print_log('Q-Learning')
         self.flush_log()
+        self.limpiar_log_button = self.vista.limpiarLogButton
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -75,6 +76,7 @@ class Controlador:
         self.dropdown_mapa.addItems(self.nombres_mapas)
         self.dropdown_mapa.setCurrentIndex(self.mapa_default)
         self.dropdown_mapa.currentIndexChanged.connect(self.cambiar_mapa)
+        self.limpiar_log_button.clicked.connect(self.limpiar_log_box)
 
     def actualizarVista(self):
         self.vista.update()
@@ -140,6 +142,9 @@ class Controlador:
         self.__add_to_log_buffer(text)
         # TODO - Hacer que no baje abajo si no estaba antes abajo (es decir, si el user lo ha movido para mirar algo)
         self.log_box.verticalScrollBar().setValue(self.log_box.verticalScrollBar().maximum())
+
+    def limpiar_log_box(self):
+        self.log_box.setText('')
 
     def __init_log_buffer(self, buffer_size=LOG_BUFFER_DEFAULT_SIZE):
         self.log_buffer = []
