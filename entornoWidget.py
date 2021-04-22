@@ -25,13 +25,14 @@ class EntornoWidget(QtWidgets.QWidget):
         self.mapa = agente.entorno.get_mapa()
         self.setFixedSize(TAMANO_BLOQUE*tamano+ESPACIO_ENTRE_BLOQUES*(tamano-1), TAMANO_BLOQUE*tamano+ESPACIO_ENTRE_BLOQUES*(tamano-1))
 
-    def __init__(self, tamano = 0, agente=None):
+    def __init__(self, tamano=0, agente=None):
         super().__init__()
         if agente is not None and tamano != 0:
             self.configurar(tamano, agente)
 
     def paintEvent(self, e: QtGui.QPaintEvent) -> None:
         if self.agente is not None:
+            self.cache_Q = self.agente.readonly_Q
             painter = QtGui.QPainter(self)
             brush = QtGui.QBrush()
             brush.setColor(QtGui.QColor(120, 120, 120))
@@ -72,13 +73,13 @@ class EntornoWidget(QtWidgets.QWidget):
         pen.setColor(QtGui.QColor(0, 0, 0))
         painter.setPen(pen)
 
-        valor_q = np.max(self.agente.Q[fil*self.tamano+col])
+        valor_q = np.max(self.cache_Q[fil*self.tamano+col])
         painter.drawText(x_ini, y_ini, TAMANO_BLOQUE, TAMANO_BLOQUE/3, Qt.AlignCenter, '{}\n{}'.format(
                          str(round(valor_q, 2)),
                          self.mapa[fil][col]))
         origen_flechas_x = x_ini+TAMANO_BLOQUE/2
         origen_flechas_y = y_ini+TAMANO_BLOQUE*2/3
-        self.__dibujar4flechas(origen_flechas_x, origen_flechas_y, self.agente.Q[fil*self.tamano+col], painter)
+        self.__dibujar4flechas(origen_flechas_x, origen_flechas_y, self.cache_Q[fil*self.tamano+col], painter)
 
     def __dibujar4flechas(self, x_origen, y_origen, q_estado, painter):
         for c in "UDLR":
