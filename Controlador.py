@@ -67,6 +67,7 @@ class Controlador:
         self.flush_log()
         self.limpiar_log_button = self.vista.limpiarLogButton
         self.exportar_q_button = self.vista.exportarMatrizButton
+        self.importar_q_button = self.vista.importarMatrizButton
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -81,6 +82,7 @@ class Controlador:
         self.dropdown_mapa.currentIndexChanged.connect(self.cambiar_mapa)
         self.limpiar_log_button.clicked.connect(self.limpiar_log_box)
         self.exportar_q_button.clicked.connect(self.abrir_dialogo_guardado)
+        self.importar_q_button.clicked.connect(self.abrir_dialogo_lectura)
 
     def abrir_dialogo_guardado(self):
         opciones = QFileDialog.Options()
@@ -92,8 +94,17 @@ class Controlador:
             if not nombre_fichero.endswith(utils.FORMATO_FICHERO):
                 nombre_fichero += utils.FORMATO_FICHERO
             print(nombre_fichero)
-            utils.guardar_fichero(nombre_fichero, utils.generar_matriz_exportable(self.agt.Q))  # TODO replace with readonly_q
-            self.print_log('Fichero guardado con éxito en '+nombre_fichero)
+            utils.guardar_matriz_Q(nombre_fichero, self.agt.Q)  # TODO replace with readonly_q
+            self.print_log('Fichero exportado con éxito en '+nombre_fichero)
+
+    def abrir_dialogo_lectura(self):
+        opciones = QFileDialog.Options()
+        file = QFileDialog.getOpenFileName(self.vista, 'Importar Matriz Q', 'Default File', 'Policy File (*pol)', options=opciones)
+        nombre_fichero = file[0]
+        Q = utils.leer_matriz_Q(nombre_fichero)
+        self.print_log('Fichero importado con éxito desde '+nombre_fichero)
+        self.agt.Q = Q  # TODO MEGAUNSAFE pero bueno poquito a poquito
+        self.actualizarVista()
 
     def actualizarVista(self):
         self.vista.update()

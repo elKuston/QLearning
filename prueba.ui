@@ -15,10 +15,17 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="4" column="0">
+    <item row="5" column="0">
      <widget class="EntornoWidget" name="entorno" native="true"/>
     </item>
-    <item row="4" column="1">
+    <item row="3" column="1">
+     <widget class="QPushButton" name="exportarMatrizButton">
+      <property name="text">
+       <string>Exportar Matriz Q</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
      <widget class="QTextEdit" name="logTextbox">
       <property name="minimumSize">
        <size>
@@ -145,7 +152,7 @@
       </item>
      </layout>
     </item>
-    <item row="3" column="1">
+    <item row="4" column="1">
      <widget class="QPushButton" name="limpiarLogButton">
       <property name="text">
        <string>Limpiar Log</string>
@@ -153,9 +160,9 @@
      </widget>
     </item>
     <item row="2" column="1">
-     <widget class="QPushButton" name="exportarMatrizButton">
+     <widget class="QPushButton" name="importarMatrizButton">
       <property name="text">
-       <string>Exportar Matriz Q</string>
+       <string>Importar Matriz Q</string>
       </property>
      </widget>
     </item>
