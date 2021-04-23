@@ -86,12 +86,19 @@ class Controlador:
 
     def abrir_dialogo_guardado(self):
         opciones = QFileDialog.Options()
+        mapa_actual = self.dropdown_mapa.currentIndex()
+        extension = utils.FORMATO_FICHERO+str(self.tamanos_mapas[mapa_actual])
+
+        tam = self.nombres_mapas[mapa_actual]
         # TODO texto hardcodeado
-        file = QFileDialog.getSaveFileName(self.vista, 'Exportar Matriz Q',
-                                           "matriz.pol", 'Policy file (*'+utils.FORMATO_FICHERO+')', options=opciones)
+        file = QFileDialog.getSaveFileName(self.vista,
+                                           'Exportar Matriz Q',
+                                           'matriz'+extension,
+                                           'Policy file '+tam+' (*'+extension+')',
+                                           options=opciones)
         nombre_fichero = file[0]
         if len(nombre_fichero) > 0:
-            if not nombre_fichero.endswith(utils.FORMATO_FICHERO):
+            if not nombre_fichero.endswith(extension):
                 nombre_fichero += utils.FORMATO_FICHERO
             print(nombre_fichero)
             utils.guardar_matriz_Q(nombre_fichero, self.agt.Q)  # TODO replace with readonly_q
@@ -99,12 +106,20 @@ class Controlador:
 
     def abrir_dialogo_lectura(self):
         opciones = QFileDialog.Options()
-        file = QFileDialog.getOpenFileName(self.vista, 'Importar Matriz Q', 'Default File', 'Policy File (*pol)', options=opciones)
+        mapa_actual = self.dropdown_mapa.currentIndex()
+        extension = utils.FORMATO_FICHERO+str(self.tamanos_mapas[mapa_actual])
+        tam = self.nombres_mapas[mapa_actual]
+
+        file = QFileDialog.getOpenFileName(self.vista, 'Importar Matriz Q',
+                                           'Default File',
+                                           'Policy file '+tam+' (*'+extension+')',
+                                           options=opciones)
         nombre_fichero = file[0]
-        Q = utils.leer_matriz_Q(nombre_fichero)
-        self.print_log('Fichero importado con éxito desde '+nombre_fichero)
-        self.agt.Q = Q  # TODO MEGAUNSAFE pero bueno poquito a poquito
-        self.actualizarVista()
+        if len(nombre_fichero) > 0:
+            Q = utils.leer_matriz_Q(nombre_fichero)
+            self.print_log('Fichero importado con éxito desde '+nombre_fichero)
+            self.agt.Q = Q  # TODO MEGAUNSAFE pero bueno poquito a poquito
+            self.actualizarVista()
 
     def actualizarVista(self):
         self.vista.update()
