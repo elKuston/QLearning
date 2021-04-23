@@ -7,6 +7,8 @@ from SegundoPlano import SegundoPlano
 
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanas import VentanaPrincipal, VentanaMetricas
+from PyQt5.QtWidgets import QFileDialog
+import utils
 
 LOG_BUFFER_DEFAULT_SIZE = 5
 
@@ -64,6 +66,8 @@ class Controlador:
         self.print_log('Q-Learning')
         self.flush_log()
         self.limpiar_log_button = self.vista.limpiarLogButton
+        self.exportar_q_button = self.vista.exportarMatrizButton
+        self.importar_q_button = self.vista.importarMatrizButton
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -77,6 +81,45 @@ class Controlador:
         self.dropdown_mapa.setCurrentIndex(self.mapa_default)
         self.dropdown_mapa.currentIndexChanged.connect(self.cambiar_mapa)
         self.limpiar_log_button.clicked.connect(self.limpiar_log_box)
+        self.exportar_q_button.clicked.connect(self.abrir_dialogo_guardado)
+        self.importar_q_button.clicked.connect(self.abrir_dialogo_lectura)
+
+    def abrir_dialogo_guardado(self):
+        opciones = QFileDialog.Options()
+        mapa_actual = self.dropdown_mapa.currentIndex()
+        extension = utils.FORMATO_FICHERO+str(self.tamanos_mapas[mapa_actual])
+
+        tam = self.nombres_mapas[mapa_actual]
+        # TODO texto hardcodeado
+        file = QFileDialog.getSaveFileName(self.vista,
+                                           'Exportar Matriz Q',
+                                           'matriz'+extension,
+                                           'Policy file '+tam+' (*'+extension+')',
+                                           options=opciones)
+        nombre_fichero = file[0]
+        if len(nombre_fichero) > 0:
+            if not nombre_fichero.endswith(extension):
+                nombre_fichero += utils.FORMATO_FICHERO
+            print(nombre_fichero)
+            utils.guardar_matriz_Q(nombre_fichero, self.agt.Q)  # TODO replace with readonly_q
+            self.print_log('Fichero exportado con éxito en '+nombre_fichero)
+
+    def abrir_dialogo_lectura(self):
+        opciones = QFileDialog.Options()
+        mapa_actual = self.dropdown_mapa.currentIndex()
+        extension = utils.FORMATO_FICHERO+str(self.tamanos_mapas[mapa_actual])
+        tam = self.nombres_mapas[mapa_actual]
+
+        file = QFileDialog.getOpenFileName(self.vista, 'Importar Matriz Q',
+                                           'Default File',
+                                           'Policy file '+tam+' (*'+extension+')',
+                                           options=opciones)
+        nombre_fichero = file[0]
+        if len(nombre_fichero) > 0:
+            Q = utils.leer_matriz_Q(nombre_fichero)
+            self.print_log('Fichero importado con éxito desde '+nombre_fichero)
+            self.agt.Q = Q  # TODO MEGAUNSAFE pero bueno poquito a poquito
+            self.actualizarVista()
 
     def actualizarVista(self):
         self.vista.update()
