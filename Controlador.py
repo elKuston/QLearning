@@ -101,7 +101,7 @@ class Controlador:
             if not nombre_fichero.endswith(extension):
                 nombre_fichero += utils.FORMATO_FICHERO
             print(nombre_fichero)
-            utils.guardar_matriz_Q(nombre_fichero, self.agt.Q)  # TODO replace with readonly_q
+            utils.guardar_matriz_Q(nombre_fichero, self.agt.readonly_Q)  # TODO replace with readonly_q
             self.print_log('Fichero exportado con éxito en '+nombre_fichero)
 
     def abrir_dialogo_lectura(self):

@@ -76,11 +76,11 @@ class EntornoWidget(QtWidgets.QWidget):
         painter.setPen(pen)
 
         valor_q = np.max(self.cache_Q[fil*self.tamano+col])
-        painter.drawText(x_ini, y_ini, TAMANO_BLOQUE, TAMANO_BLOQUE/3, Qt.AlignCenter, '{}\n{}'.format(
+        painter.drawText(x_ini, y_ini, self.TAMANO_BLOQUE, self.TAMANO_BLOQUE/3, Qt.AlignCenter, '{}\n{}'.format(
                          str(round(valor_q, 2)),
                          self.mapa[fil][col]))
-        origen_flechas_x = x_ini+TAMANO_BLOQUE/2
-        origen_flechas_y = y_ini+TAMANO_BLOQUE*2/3
+        origen_flechas_x = x_ini+self.TAMANO_BLOQUE/2
+        origen_flechas_y = y_ini+self.TAMANO_BLOQUE*2/3
         self.__dibujar4flechas(origen_flechas_x, origen_flechas_y, self.cache_Q[fil*self.tamano+col], painter)
 
     def __dibujar4flechas(self, x_origen, y_origen, q_estado, painter):
@@ -100,13 +100,13 @@ class EntornoWidget(QtWidgets.QWidget):
         # Ahora mismo dibuja en negro las flechas mayores que 0 o, si todas son negativas, la que tenga mayor valor, y el resto en rojo (las negativas)
         if direccion.upper() == 'U':  # Arriba
             valor_q = q_estado[qlearning.ACCION_ARRIBA]
-            incr_y = -LONGITUD_FLECHAS*abs(valor_q)/max_abs
+            incr_y = -self.LONGITUD_FLECHAS*abs(valor_q)/max_abs
         elif direccion.upper() == 'D':  # Abajo
             valor_q = q_estado[qlearning.ACCION_ABAJO]
-            incr_y = LONGITUD_FLECHAS*abs(valor_q)/max_abs
+            incr_y = self.LONGITUD_FLECHAS*abs(valor_q)/max_abs
         elif direccion.upper() == 'L':  # izquierda
             valor_q = q_estado[qlearning.ACCION_IZQUIERDA]
-            incr_x = -LONGITUD_FLECHAS*abs(valor_q)/max_abs
+            incr_x = -self.LONGITUD_FLECHAS*abs(valor_q)/max_abs
         elif direccion.upper() == 'R':  # Derecha
             valor_q = q_estado[qlearning.ACCION_DERECHA]
             incr_x = self.LONGITUD_FLECHAS*abs(valor_q)/max_abs
