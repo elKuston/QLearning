@@ -26,7 +26,6 @@ class FrozenLake:
         self.observation_space = self.frozen_lake.observation_space
         self.action_space = self.frozen_lake.action_space
 
-
     def reset(self):
         return self.frozen_lake.reset()
 

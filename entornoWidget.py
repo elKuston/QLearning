@@ -34,6 +34,7 @@ class EntornoWidget(QtWidgets.QWidget):
 
     def paintEvent(self, e: QtGui.QPaintEvent) -> None:
         if self.agente is not None:
+            self.cache_Q = self.agente.readonly_Q
             painter = QtGui.QPainter(self)
             brush = QtGui.QBrush()
             brush.setColor(QtGui.QColor(120, 120, 120))
@@ -74,13 +75,13 @@ class EntornoWidget(QtWidgets.QWidget):
         pen.setColor(QtGui.QColor(0, 0, 0))
         painter.setPen(pen)
 
-        valor_q = np.max(self.agente.Q[fil*self.tamano+col])
-        painter.drawText(x_ini, y_ini, self.TAMANO_BLOQUE, self.TAMANO_BLOQUE/3, Qt.AlignCenter, '{}\n{}'.format(
+        valor_q = np.max(self.cache_Q[fil*self.tamano+col])
+        painter.drawText(x_ini, y_ini, TAMANO_BLOQUE, TAMANO_BLOQUE/3, Qt.AlignCenter, '{}\n{}'.format(
                          str(round(valor_q, 2)),
                          self.mapa[fil][col]))
-        origen_flechas_x = x_ini+self.TAMANO_BLOQUE/2
-        origen_flechas_y = y_ini+self.TAMANO_BLOQUE*2/3
-        self.__dibujar4flechas(origen_flechas_x, origen_flechas_y, self.agente.Q[fil*self.tamano+col], painter)
+        origen_flechas_x = x_ini+TAMANO_BLOQUE/2
+        origen_flechas_y = y_ini+TAMANO_BLOQUE*2/3
+        self.__dibujar4flechas(origen_flechas_x, origen_flechas_y, self.cache_Q[fil*self.tamano+col], painter)
 
     def __dibujar4flechas(self, x_origen, y_origen, q_estado, painter):
         for c in "UDLR":
@@ -95,18 +96,18 @@ class EntornoWidget(QtWidgets.QWidget):
         if max_abs == 0:
             max_abs = 1
 
-        #switch direcciones
-        #Ahora mismo dibuja en negro las flechas mayores que 0 o, si todas son negativas, la que tenga mayor valor, y el resto en rojo (las negativas)
-        if direccion.upper() == 'U':#Arriba
+        # switch direcciones
+        # Ahora mismo dibuja en negro las flechas mayores que 0 o, si todas son negativas, la que tenga mayor valor, y el resto en rojo (las negativas)
+        if direccion.upper() == 'U':  # Arriba
             valor_q = q_estado[qlearning.ACCION_ARRIBA]
-            incr_y = -self.LONGITUD_FLECHAS*abs(valor_q)/max_abs
-        elif direccion.upper() == 'D':#Abajo
+            incr_y = -LONGITUD_FLECHAS*abs(valor_q)/max_abs
+        elif direccion.upper() == 'D':  # Abajo
             valor_q = q_estado[qlearning.ACCION_ABAJO]
-            incr_y = self.LONGITUD_FLECHAS*abs(valor_q)/max_abs
-        elif direccion.upper() == 'L':#izquierda
+            incr_y = LONGITUD_FLECHAS*abs(valor_q)/max_abs
+        elif direccion.upper() == 'L':  # izquierda
             valor_q = q_estado[qlearning.ACCION_IZQUIERDA]
-            incr_x = -self.LONGITUD_FLECHAS*abs(valor_q)/max_abs
-        elif direccion.upper() == 'R':#Derecha
+            incr_x = -LONGITUD_FLECHAS*abs(valor_q)/max_abs
+        elif direccion.upper() == 'R':  # Derecha
             valor_q = q_estado[qlearning.ACCION_DERECHA]
             incr_x = self.LONGITUD_FLECHAS*abs(valor_q)/max_abs
         else:

@@ -33,6 +33,10 @@ class Agente:
 
         self.ultimo_refresco = time.time()
 
+    @property
+    def readonly_Q(self):
+        return np.copy(self.Q)
+
     def resolver(self):
         qlearning.callback_ejecucion_inicio_ejecucion = self.controlador.actualizarVista
         qlearning.callback_ejecucion_fin_paso = self.controlador.actualizarVista
