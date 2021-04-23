@@ -7,6 +7,8 @@ from SegundoPlano import SegundoPlano
 
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanas import VentanaPrincipal, VentanaMetricas
+from PyQt5.QtWidgets import QFileDialog
+import utils
 
 LOG_BUFFER_DEFAULT_SIZE = 5
 
@@ -64,6 +66,7 @@ class Controlador:
         self.print_log('Q-Learning')
         self.flush_log()
         self.limpiar_log_button = self.vista.limpiarLogButton
+        self.exportar_q_button = self.vista.exportarMatrizButton
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -77,6 +80,20 @@ class Controlador:
         self.dropdown_mapa.setCurrentIndex(self.mapa_default)
         self.dropdown_mapa.currentIndexChanged.connect(self.cambiar_mapa)
         self.limpiar_log_button.clicked.connect(self.limpiar_log_box)
+        self.exportar_q_button.clicked.connect(self.abrir_dialogo_guardado)
+
+    def abrir_dialogo_guardado(self):
+        opciones = QFileDialog.Options()
+        # TODO texto hardcodeado
+        file = QFileDialog.getSaveFileName(self.vista, 'Exportar Matriz Q',
+                                           "matriz.pol", 'Policy file (*'+utils.FORMATO_FICHERO+')', options=opciones)
+        nombre_fichero = file[0]
+        if len(nombre_fichero) > 0:
+            if not nombre_fichero.endswith(utils.FORMATO_FICHERO):
+                nombre_fichero += utils.FORMATO_FICHERO
+            print(nombre_fichero)
+            utils.guardar_fichero(nombre_fichero, utils.generar_matriz_exportable(self.agt.Q))  # TODO replace with readonly_q
+            self.print_log('Fichero guardado con éxito en '+nombre_fichero)
 
     def actualizarVista(self):
         self.vista.update()
