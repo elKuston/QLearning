@@ -4,7 +4,6 @@ import time
 from frozenLake import FrozenLake
 
 
-
 class Agente:
     def vacio(self):
         pass

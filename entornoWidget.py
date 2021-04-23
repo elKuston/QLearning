@@ -57,7 +57,7 @@ class EntornoWidget(QtWidgets.QWidget):
 
     def __dibujar_agente(self, painter):
         if self.agente.estado is not None:
-            x, y = self.agente.estado%self.tamano, math.floor(self.agente.estado/self.tamano)
+            x, y = self.agente.estado % self.tamano, math.floor(self.agente.estado/self.tamano)
             x_pix = x*(self.TAMANO_BLOQUE + self.ESPACIO_ENTRE_BLOQUES)+self.TAMANO_BLOQUE/2 - self.RADIO_AGENTE/2
             y_pix = y*(self.TAMANO_BLOQUE + self.ESPACIO_ENTRE_BLOQUES)+self.TAMANO_BLOQUE/2 - self.RADIO_AGENTE/2
             painter.drawEllipse(x_pix, y_pix, self.RADIO_AGENTE, self.RADIO_AGENTE)

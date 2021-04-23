@@ -151,9 +151,9 @@ class Controlador:
         self.buffer_size = buffer_size
 
     def __add_to_log_buffer(self, text):
+        self.log_buffer.append(text)
         if self.__log_buffer_full():
             self.__clear_log_buffer()
-        self.log_buffer.append(text)
 
     def __log_buffer_full(self):
         return len(self.log_buffer) == self.buffer_size
