@@ -43,7 +43,8 @@ class Agente:
     def cambiar_tiempo_espera(self, tiempo_espera):
         self.tiempo_espera = tiempo_espera
 
-    def print_log(self, text):
+    def __print_log(self, text):
+
         if self.controlador is not None:
             self.controlador.print_log(text)
         else:

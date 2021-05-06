@@ -15,15 +15,16 @@ class SignalBuffer:
         self.frecuencia_max = frecuencia_max
         self.ultima_emision = time.time()
 
-    def emit(self):
+    def emit(self, *params):
         t = time.time()
         if t - self.ultima_emision >= 16/1000:  # Solo emite señales cada 16ms (60hz)
             self.ultima_emision = t
-            self.sig.emit()
+            self.sig.emit(*params)
 
 
 class ThreadEntrenamiento(QThread):
     sig_actualizar_vista = pyqtSignal()
+    sig_print = pyqtSignal(str)
 
     def __init__(self, controlador: Controlador, agente, alpha, gamma, episodios, recompensa_media, n_episodios_media):
         super().__init__()
@@ -42,11 +43,15 @@ class ThreadEntrenamiento(QThread):
         qlearning.callback_entrenamiento_inicio_entrenamiento = self.actualizar_vista
         qlearning.callback_entrenamiento_fin_paso = self.actualizar_vista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
+        qlearning.funcion_print = self.log
         qlearning.entrenar(self.alpha, self.gamma, self.episodios, self.recompensa_media,
                            self.n_episodios_media, self.agente, self.agente.politica)
 
     def actualizar_vista(self):
         self.sig_buf.emit()
+
+    def log(self, message):
+        self.sig_print.emit(message)
 
     def esperar(self):
         time.sleep(self.tiempo_espera)
@@ -58,6 +63,7 @@ class ThreadEntrenamiento(QThread):
 class ThreadEjecucion(QThread):
 
     sig_actualizar_vista = pyqtSignal()
+    sig_print = pyqtSignal(str)
 
     def __init__(self, controlador: Controlador, agente):
         super().__init__()
@@ -73,7 +79,11 @@ class ThreadEjecucion(QThread):
         qlearning.callback_ejecucion_inicio_ejecucion = self.actualizar_vista
         qlearning.callback_ejecucion_fin_paso = self.actualizar_vista
         qlearning.callback_ejecucion_inicio_paso = self.esperar
+        qlearning.funcion_print = self.log
         qlearning.ejecutar(self.agente)
+
+    def log(self, message):
+        self.sig_print.emit(message)
 
     def actualizar_vista(self):
         self.sig_buf.emit()

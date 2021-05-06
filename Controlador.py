@@ -183,6 +183,7 @@ class Controlador(QObject):
             raise ValueError("El valor de la accion actual {} no es valido".format(self.accion_actual))
 
         thread.sig_actualizar_vista.connect(self.actualizarVista)
+        thread.sig_print.connect(self.print_log)
         self.cambiar_tiempo_espera()
         return thread
 
