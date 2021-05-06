@@ -63,7 +63,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     """
 
     politica = agente.politica
-    reset(agente)
+    #reset(agente)  TODO una cosita que he comentado porque no estoy seguro de si quitarla rompe todo el programa jeje
 
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
 
