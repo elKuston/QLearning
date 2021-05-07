@@ -131,7 +131,6 @@ class SoftMax(Politica):
         return softmax
 
 
-
 class UpperConfidenceBound(Politica):
     def __init__(self, agente, H, T, semilla_random=0):
         """
@@ -146,9 +145,6 @@ class UpperConfidenceBound(Politica):
         self.T = T
         self.N = np.zeros([agente.entorno.observation_space.n, agente.entorno.action_space.n])
         self.V = np.full(agente.entorno.observation_space.n, 0)
-
-
-
 
     def inicializar_q(self):
         super().inicializar_q(valor=self.H)
