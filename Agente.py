@@ -27,38 +27,15 @@ class Agente:
         self.estado = None
         self.controlador = controlador
         self.Q = np.zeros([entorno.observation_space.n, entorno.action_space.n])  # El agente contiene su matriz Q
-        self.playing = True
+        self.playing = False
         self.tiempo_espera = 0.01
         self.politica = None  # Algo hay que poner para que no se queje de que está definido fuera del init
 
         self.ultimo_refresco = time.time()
 
     @property
-    def readonly_Q(self):
+    def readonly_Q(self):  #TODO cambiar por una property Q protegida por mutex
         return np.copy(self.Q)
-
-    def resolver(self):
-        qlearning.callback_ejecucion_inicio_ejecucion = self.controlador.actualizarVista
-        qlearning.callback_ejecucion_fin_paso = self.controlador.actualizarVista
-        qlearning.callback_ejecucion_inicio_paso = self.esperar
-        qlearning.ejecutar(self)
-
-    def entrenar(self, alpha, gamma, episodios, recompensa_media, n_episodios_media):
-        qlearning.callback_entrenamiento_inicio_entrenamiento = self.actualizar_vista
-        qlearning.callback_entrenamiento_fin_paso = self.actualizar_vista
-        qlearning.callback_entrenamiento_inicio_paso = self.esperar
-        qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, self.politica)
-
-    def actualizar_vista(self):
-        self.controlador.actualizarVista()
-
-    def esperar(self):
-        time.sleep(self.tiempo_espera)
-        self.esperar_play()
-
-    def esperar_play(self):
-        while not self.playing:
-            time.sleep(0.01)  # TODO esto es una basura de espera activa pero poco a poco, ya lo cambiaremos - Edit: parece que no hay muchas otras manera de hacerlo :/ porque parece que habria que crear un thread.Event para cada evento al que quiero que reaccione el programa y xd eso son muchos eventos cmo para pasar tantos parametros
 
     def toggle_play(self):
         self.playing = not self.playing
@@ -66,7 +43,8 @@ class Agente:
     def cambiar_tiempo_espera(self, tiempo_espera):
         self.tiempo_espera = tiempo_espera
 
-    def print_log(self, text):
+    def __print_log(self, text):
+
         if self.controlador is not None:
             self.controlador.print_log(text)
         else:

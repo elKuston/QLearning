@@ -3,14 +3,17 @@ import sys
 import time
 from Agente import Agente
 import frozenLake
-from SegundoPlano import SegundoPlano
 
 from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanas import VentanaPrincipal, VentanaMetricas
+from threadsSegundoPlano import *
 from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtCore import pyqtSignal, QObject
 import utils
 
 LOG_BUFFER_DEFAULT_SIZE = 5
+ENTRENANDO = 0
+RESOLVIENDO = 1
 
 
 episodios = 100000000000000  # Las "rondas" de entrenamiento
@@ -18,12 +21,16 @@ recompensa_media = 0.78  # Según la documentación, se considera que este probl
 n_episodios_media = 100
 
 
-class Controlador:
+class Controlador(QObject):
+
+    sig_cambiar_tiempo_espera = pyqtSignal(float)
+
     def __init__(self):
-
-
+        super().__init__()
         self.__init_log_buffer(1)
-        self.segundo_plano = None
+        self.accion_actual = ENTRENANDO
+        self.thread_entrenamiento = None
+        self.thread_resolucion = None
         app = QtWidgets.QApplication(sys.argv)
         self.nombres_mapas = frozenLake.nombres_mapas()
         self.mapas = frozenLake.mapas()
@@ -140,6 +147,12 @@ class Controlador:
 
     def togglePlay(self):
         self.agt.toggle_play()
+        if self.get_thread_actual() is not None:
+            if self.agt.playing:
+                self.get_thread_actual().start()
+            else:
+                self.get_thread_actual().terminate()
+
         # TODO textos hardcodeados que hay que quitar
         if self.agt.playing:
             text = 'Pause'
@@ -148,38 +161,84 @@ class Controlador:
         self.play_pause_button.setText(text)
 
     def cambiar_tiempo_espera(self):
-        self.agt.cambiar_tiempo_espera(
-            self.espera_slider.value() / 1000)  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
-
-    def __cancelar_segundo_plano(self):
-        if self.segundo_plano is not None:
-            self.segundo_plano.terminate()
-        self.segundo_plano = None  #TODO esto lo pongo aqui para poder deshabilitar el boton play después de un reset o cuando no haya un entrenamiento en proceso (está feo pero no es funcional,prioridad baja)
+        self.sig_cambiar_tiempo_espera.emit(
+            self.espera_slider.value()/1000  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
+        )
+        #self.agt.cambiar_tiempo_espera(
+         #   self.espera_slider.value() / 1000)  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
 
     def reset(self):
-        self.__cancelar_segundo_plano()
-        self.agt.reset()
+        #self.__cancelar_segundo_plano()
         if self.agt.playing:
             self.togglePlay()
+        if self.get_thread_actual() is not None:
+            self.get_thread_actual().terminate()
+
+        self.algoritmos = self.get_algoritmos()
+        self.agt.reset()
+        self.generar_thread_actual()
         self.actualizarVista()
 
+        self.print_log("Reset...")
+
+    def generar_thread_actual(self):
+        thread = None
+        if self.accion_actual == ENTRENANDO:
+            self.thread_entrenamiento = ThreadEntrenamiento(self, self.agt, self.alpha, self.gamma, episodios,
+                                                            recompensa_media, n_episodios_media)
+            thread = self.thread_entrenamiento
+        elif self.accion_actual == RESOLVIENDO:
+            self.thread_resolucion = ThreadEjecucion(self, self.agt)
+            thread = self.thread_resolucion
+        else:
+            raise ValueError("El valor de la accion actual {} no es valido".format(self.accion_actual))
+
+        thread.sig_actualizar_vista.connect(self.actualizarVista)
+        thread.sig_print.connect(self.print_log)
+        self.cambiar_tiempo_espera()
+        return thread
+
+    def get_thread_actual(self):
+        thread = None
+        if self.accion_actual == ENTRENANDO:
+            thread = self.thread_entrenamiento
+        elif self.accion_actual == RESOLVIENDO:
+            thread = self.thread_resolucion
+        if thread is None:
+            thread = self.generar_thread_actual()
+        return thread
+
     def entrenar(self):
-        self.reset()
-        self.segundo_plano = SegundoPlano(self.agt.entrenar, self.alpha, self.gamma, episodios, recompensa_media,
-                                          n_episodios_media)
-        self.segundo_plano.start()
+        #self.reset()
+        self.accion_actual = ENTRENANDO
+        if self.get_thread_inactivo() is not None:
+            self.get_thread_inactivo().terminate()
+        self.get_thread_actual().start()
 
         if not self.agt.playing:
             self.togglePlay()
+
+    def get_thread_inactivo(self):
+        thread = None
+        if self.accion_actual == RESOLVIENDO:
+            thread = self.thread_entrenamiento
+        elif self.accion_actual == ENTRENANDO:
+            thread = self.thread_resolucion
+        return thread
+
 
     def cambiar_algoritmo(self):
         self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
         self.reset()
 
     def resolver(self):
-        self.__cancelar_segundo_plano()
-        self.segundo_plano = SegundoPlano(self.agt.resolver)
-        self.segundo_plano.start()
+        self.accion_actual = RESOLVIENDO
+        #self.__cancelar_segundo_plano()
+        #self.segundo_plano = SegundoPlano(self.agt.resolver)
+        #self.segundo_plano.start()
+        if self.get_thread_inactivo() is not None:
+            self.get_thread_inactivo().terminate()
+        self.get_thread_actual().start()
 
         if not self.agt.playing:
             self.togglePlay()
@@ -190,6 +249,7 @@ class Controlador:
         self.algoritmos = self.get_algoritmos()
         self.cambiar_algoritmo()
         self.vista.cambiar_entorno(self.tamanos_mapas[self.dropdown_mapa.currentIndex()], self.agt)
+        self.reset()
 
     def print_log(self, text):
         print(text)
