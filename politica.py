@@ -124,6 +124,13 @@ class SoftMax(Politica):
         softmax = probabilidades/suma
         return softmax
 
+    def __softmax_notemp(self, q_estado):
+        probabilidades = np.exp(q_estado)  #Sin temp
+        suma = np.sum(probabilidades)
+        softmax = probabilidades/suma
+        return softmax
+
+
 
 class UpperConfidenceBound(Politica):
     def __init__(self, agente, H, T, semilla_random=0):

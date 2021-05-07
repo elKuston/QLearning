@@ -174,7 +174,7 @@ class Controlador(QObject):
         if self.get_thread_actual() is not None:
             self.get_thread_actual().terminate()
 
-        self.algoritmos = self.get_algoritmos()
+        self.refresh_algoritmo()
         self.agt.reset()
         self.generar_thread_actual()
         self.actualizarVista()
@@ -209,7 +209,6 @@ class Controlador(QObject):
         return thread
 
     def entrenar(self):
-        #self.reset()
         self.accion_actual = ENTRENANDO
         if self.get_thread_inactivo() is not None:
             self.get_thread_inactivo().terminate()
@@ -226,9 +225,13 @@ class Controlador(QObject):
             thread = self.thread_resolucion
         return thread
 
+    def refresh_algoritmo(self):
+        self.algoritmos = self.get_algoritmos()
+        self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
 
     def cambiar_algoritmo(self):
-        self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
+        #self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
+        self.refresh_algoritmo()
         self.reset()
 
     def resolver(self):
