@@ -84,7 +84,9 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
             callback_entrenamiento_inicio_paso()
             accion = politica.seleccionar_accion()
 
-            estado_siguiente, recompensa, es_final, info = agente.entorno.step(accion)  # Calcular el siguiente estado
+            estado_siguiente, recompensa, es_final, info = agente.entorno.step(accion)
+            # TODO nuevo cambio: se calcula la media SIN modificar la recompensa
+            recompensa_total += recompensa  # <-- todo joooooder cómo se nota xd
             if modificar_recompensa:
                 if not es_final:
                     recompensa = -0.0001  # Dar pasos tiene un coste (buscamos el camino mínimo)
@@ -95,7 +97,6 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
                     politica.habilitar_variacion()
                     callback_entrenamiento_exito()
             callback_entrenamiento_recompensa()
-            recompensa_total += recompensa
             politica.actualizar_q(accion, estado_siguiente, recompensa, alpha, gamma)
 
             agente.estado = estado_siguiente

@@ -160,12 +160,14 @@ class Controlador(QObject):
 
     def reset(self):
         #self.__cancelar_segundo_plano()
-        if self.get_thread_actual() is not None:
-            self.get_thread_actual().terminate()
-        self.agt.reset()
-        self.generar_thread_actual()
         if self.agt.playing:
             self.togglePlay()
+        if self.get_thread_actual() is not None:
+            self.get_thread_actual().terminate()
+
+        self.algoritmos = self.get_algoritmos()
+        self.agt.reset()
+        self.generar_thread_actual()
         self.actualizarVista()
 
         self.print_log("Reset...")
