@@ -15,9 +15,6 @@ LOG_BUFFER_DEFAULT_SIZE = 5
 ENTRENANDO = 0
 RESOLVIENDO = 1
 
-alpha = 0.1  # Tasa de aprendizaje
-gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
-epsilon = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
 
 episodios = 100000000000000  # Las "rondas" de entrenamiento
 recompensa_media = 0.78  # Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
@@ -41,13 +38,19 @@ class Controlador(QObject):
         self.mapa_default = 0
         entorno = frozenLake.make(self.mapas[self.mapa_default])
         self.agt = Agente(entorno, self)
-        self.algoritmos = self.get_algoritmos()
-        self.nombres_algoritmos = ['Epsilon Greedy', 'SoftMax', 'Upper Confidence Bound (UCB)']
-
-        self.agt.set_politica(self.algoritmos[0])
         self.vista = VentanaPrincipal(self.tamanos_mapas[self.mapa_default], self.agt, app.primaryScreen().size())
 
+        self.nombres_algoritmos = ['Epsilon Greedy', 'SoftMax', 'Upper Confidence Bound (UCB)']
         self.__map_ui()
+
+        self.alpha = 0.1  # Tasa de aprendizaje
+        self.gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
+        self.epsilon = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
+        self.variable_param_1 = 0.99  # POR DEFECTO es el epsilon_decay
+
+        self.algoritmos = self.get_algoritmos()
+
+        self.agt.set_politica(self.algoritmos[0])
 
         self.vista.show()
         #self.vista_metricas = VentanaMetricas()
@@ -55,13 +58,14 @@ class Controlador(QObject):
         sys.exit(app.exec_())
 
     def get_algoritmos(self):
-        return [EpsilonGreedy(self.agt, epsilon, 0.9),
+        return [EpsilonGreedy(self.agt, self.epsilon, self.variable_param_1),
                 SoftMax(self.agt, 0.5, 0.99),
                 UpperConfidenceBound(self.agt, 64, 64 * episodios)]
 
     def __map_ui(self):
         """
-        Cogemos todos los componentes de la vista y los guardamos como variables locales del controlador. Duplicamos espacio en memoria pero es mucho mas comodo y total tampoco estamos en los 90 con 64kb de ram xd
+        Cogemos todos los componentes de la vista y los guardamos como variables locales del controlador.
+        Duplicamos espacio en memoria pero es mucho mas comodo y total tampoco estamos en los 90 con 64kb de ram xd
         """
         # Convertimos las variables de la vista a variables locales
         self.play_pause_button = self.vista.playButton
@@ -77,6 +81,10 @@ class Controlador(QObject):
         self.limpiar_log_button = self.vista.limpiarLogButton
         self.exportar_q_button = self.vista.exportarMatrizButton
         self.importar_q_button = self.vista.importarMatrizButton
+        self.alpha_spinbox = self.vista.alphaSpinbox
+        self.epsilon_spinbox = self.vista.epsilonSpinbox
+        self.variable_param_spinbox_1 = self.vista.variableParamSpinbox1
+        self.gamma_spinbox = self.vista.gammaSpinbox
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
@@ -93,6 +101,7 @@ class Controlador(QObject):
         self.exportar_q_button.clicked.connect(self.abrir_dialogo_guardado)
         self.importar_q_button.clicked.connect(self.abrir_dialogo_lectura)
 
+    #TODO - en la branch correspondiente, meter esto en el módulo utils que aquí sobra un poco
     def abrir_dialogo_guardado(self):
         opciones = QFileDialog.Options()
         mapa_actual = self.dropdown_mapa.currentIndex()
@@ -175,7 +184,7 @@ class Controlador(QObject):
     def generar_thread_actual(self):
         thread = None
         if self.accion_actual == ENTRENANDO:
-            self.thread_entrenamiento = ThreadEntrenamiento(self, self.agt, alpha, gamma, episodios,
+            self.thread_entrenamiento = ThreadEntrenamiento(self, self.agt, self.alpha, self.gamma, episodios,
                                                             recompensa_media, n_episodios_media)
             thread = self.thread_entrenamiento
         elif self.accion_actual == RESOLVIENDO:
@@ -205,7 +214,6 @@ class Controlador(QObject):
         if self.get_thread_inactivo() is not None:
             self.get_thread_inactivo().terminate()
         self.get_thread_actual().start()
-
 
         if not self.agt.playing:
             self.togglePlay()
@@ -271,3 +279,43 @@ class Controlador(QObject):
 
     def flush_log(self):
         self.__clear_log_buffer()
+
+    # Ventajas de este enfoque (usar properties): El código queda mucho más modularizado y cómodo ya que no hay que
+    # estar pendiente de la GUI cada vez que se cambia el valor en el código.
+    # Desventaja: que cada vez que se lee el valor se hace una llamada a la GUI, lo cual es bastante ineficiente.
+    # En este caso no creo que la eficiencia sea lo más importante, así que me he decantado por esta opción.
+    # EDIT: tanto es así que creo que debería TODO cambiar el tiempo de espera entre pasos a una property
+    # Aunque de esto último no estoy tan seguro porque esa sí que es una llamada que se realiza miles de veces / segundo
+
+    @property
+    def epsilon(self):
+        return self.epsilon_spinbox.value()
+
+    @epsilon.setter
+    def epsilon(self, new_e):
+        self.epsilon_spinbox.setValue(new_e)
+
+    @property
+    def alpha(self):
+        return self.alpha_spinbox.value()
+
+    @alpha.setter
+    def alpha(self, new_a):
+        self.alpha_spinbox.setValue(new_a)
+
+    @property
+    def gamma(self):
+        return self.gamma_spinbox.value()
+
+    @gamma.setter
+    def gamma(self, new_g):
+        self.gamma_spinbox.setValue(new_g)
+
+    @property
+    def variable_param_1(self):
+        return self.variable_param_spinbox_1.value()
+
+    @variable_param_1.setter
+    def variable_param_1(self, new_val):
+        self.variable_param_spinbox_1.setValue(new_val)
+
