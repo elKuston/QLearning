@@ -15,14 +15,12 @@ LOG_BUFFER_DEFAULT_SIZE = 5
 ENTRENANDO = 0
 RESOLVIENDO = 1
 
-
 episodios = 100000000000000  # Las "rondas" de entrenamiento
 recompensa_media = 0.78  # Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
 n_episodios_media = 100
 
 
 class Controlador(QObject):
-
     sig_cambiar_tiempo_espera = pyqtSignal(float)
 
     def __init__(self):
@@ -40,26 +38,25 @@ class Controlador(QObject):
         self.agt = Agente(entorno, self)
         self.vista = VentanaPrincipal(self.tamanos_mapas[self.mapa_default], self.agt, app.primaryScreen().size())
 
-        self.nombres_algoritmos = ['Epsilon Greedy', 'SoftMax', 'Upper Confidence Bound (UCB)']
         self.__map_ui()
 
         self.alpha = 0.1  # Tasa de aprendizaje
         self.gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
-        self.epsilon = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
-        self.variable_param_1 = 0.99  # POR DEFECTO es el epsilon_decay
+        self.variable_param_1 = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
+        self.variable_param_2 = 0.99  # POR DEFECTO es el epsilon_decay
 
         self.algoritmos = self.get_algoritmos()
 
         self.agt.set_politica(self.algoritmos[0])
 
         self.vista.show()
-        #self.vista_metricas = VentanaMetricas()
-        #self.vista_metricas.show()
+        # self.vista_metricas = VentanaMetricas()
+        # self.vista_metricas.show()
         sys.exit(app.exec_())
 
     def get_algoritmos(self):
-        return [EpsilonGreedy(self.agt, self.epsilon, self.variable_param_1),
-                SoftMax(self.agt, 0.5, 0.99),
+        return [EpsilonGreedy(self.agt, self.variable_param_1, self.variable_param_2),
+                SoftMax(self.agt, self.variable_param_1, self.variable_param_2),
                 UpperConfidenceBound(self.agt, 64, 64 * episodios)]
 
     def __map_ui(self):
@@ -82,16 +79,19 @@ class Controlador(QObject):
         self.exportar_q_button = self.vista.exportarMatrizButton
         self.importar_q_button = self.vista.importarMatrizButton
         self.alpha_spinbox = self.vista.alphaSpinbox
-        self.epsilon_spinbox = self.vista.epsilonSpinbox
-        self.variable_param_spinbox_1 = self.vista.variableParamSpinbox1
         self.gamma_spinbox = self.vista.gammaSpinbox
+        self.variable_param_spinbox_1 = self.vista.variableParamSpinbox1
+        self.variable_param_spinbox_2 = self.vista.variableParamSpinbox2
+        self.variable_param_label_1 = self.vista.variableParamLabel1
+        self.variable_param_label_2 = self.vista.variableParamLabel2
 
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
         self.espera_slider.valueChanged.connect(self.cambiar_tiempo_espera)
         self.reset_button.clicked.connect(self.reset)
         self.entrenar_button.clicked.connect(self.entrenar)
-        self.dropdown_algoritmo.addItems(self.nombres_algoritmos)
+        nombres_algoritmos = [alg.get_nombre() for alg in self.get_algoritmos()]
+        self.dropdown_algoritmo.addItems(nombres_algoritmos)
         self.dropdown_algoritmo.currentIndexChanged.connect(self.cambiar_algoritmo)
         self.resolver_button.clicked.connect(self.resolver)
         self.dropdown_mapa.addItems(self.nombres_mapas)
@@ -101,18 +101,18 @@ class Controlador(QObject):
         self.exportar_q_button.clicked.connect(self.abrir_dialogo_guardado)
         self.importar_q_button.clicked.connect(self.abrir_dialogo_lectura)
 
-    #TODO - en la branch correspondiente, meter esto en el módulo utils que aquí sobra un poco
+    # TODO - en la branch correspondiente, meter esto en el módulo utils que aquí sobra un poco
     def abrir_dialogo_guardado(self):
         opciones = QFileDialog.Options()
         mapa_actual = self.dropdown_mapa.currentIndex()
-        extension = utils.FORMATO_FICHERO+str(self.tamanos_mapas[mapa_actual])
+        extension = utils.FORMATO_FICHERO + str(self.tamanos_mapas[mapa_actual])
 
         tam = self.nombres_mapas[mapa_actual]
         # TODO texto hardcodeado
         file = QFileDialog.getSaveFileName(self.vista,
                                            'Exportar Matriz Q',
-                                           'matriz'+extension,
-                                           'Policy file '+tam+' (*'+extension+')',
+                                           'matriz' + extension,
+                                           'Policy file ' + tam + ' (*' + extension + ')',
                                            options=opciones)
         nombre_fichero = file[0]
         if len(nombre_fichero) > 0:
@@ -120,22 +120,22 @@ class Controlador(QObject):
                 nombre_fichero += utils.FORMATO_FICHERO
             print(nombre_fichero)
             utils.guardar_matriz_Q(nombre_fichero, self.agt.readonly_Q)
-            self.print_log('Fichero exportado con éxito en '+nombre_fichero)
+            self.print_log('Fichero exportado con éxito en ' + nombre_fichero)
 
     def abrir_dialogo_lectura(self):
         opciones = QFileDialog.Options()
         mapa_actual = self.dropdown_mapa.currentIndex()
-        extension = utils.FORMATO_FICHERO+str(self.tamanos_mapas[mapa_actual])
+        extension = utils.FORMATO_FICHERO + str(self.tamanos_mapas[mapa_actual])
         tam = self.nombres_mapas[mapa_actual]
 
         file = QFileDialog.getOpenFileName(self.vista, 'Importar Matriz Q',
                                            'Default File',
-                                           'Policy file '+tam+' (*'+extension+')',
+                                           'Policy file ' + tam + ' (*' + extension + ')',
                                            options=opciones)
         nombre_fichero = file[0]
         if len(nombre_fichero) > 0:
             Q = utils.leer_matriz_Q(nombre_fichero)
-            self.print_log('Fichero importado con éxito desde '+nombre_fichero)
+            self.print_log('Fichero importado con éxito desde ' + nombre_fichero)
             self.agt.Q = Q  # TODO MEGAUNSAFE pero bueno poquito a poquito
             self.actualizarVista()
 
@@ -162,7 +162,8 @@ class Controlador(QObject):
 
     def cambiar_tiempo_espera(self):
         self.sig_cambiar_tiempo_espera.emit(
-            self.espera_slider.value()/1000  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
+            self.espera_slider.value() / 1000
+            # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
         )
 
     def reset(self):
@@ -226,8 +227,17 @@ class Controlador(QObject):
         self.algoritmos = self.get_algoritmos()
         self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
 
+    def cambiar_nombre_hiperparams(self):
+        nombres = self.agt.politica.get_nombres_parametros()
+        self.variable_param_label_1.setText(nombres[0])
+        self.variable_param_label_2.setText(nombres[1])
+        es_ucb = isinstance(self.agt.politica, UpperConfidenceBound)
+        self.alpha_spinbox.setDisabled(es_ucb)
+        self.gamma_spinbox.setDisabled(es_ucb)
+
     def cambiar_algoritmo(self):
         self.refresh_algoritmo()
+        self.cambiar_nombre_hiperparams()
         self.reset()
 
     def resolver(self):
@@ -285,14 +295,6 @@ class Controlador(QObject):
     # Aunque de esto último no estoy tan seguro porque esa sí que es una llamada que se realiza miles de veces / segundo
 
     @property
-    def epsilon(self):
-        return self.epsilon_spinbox.value()
-
-    @epsilon.setter
-    def epsilon(self, new_e):
-        self.epsilon_spinbox.setValue(new_e)
-
-    @property
     def alpha(self):
         return self.alpha_spinbox.value()
 
@@ -316,3 +318,10 @@ class Controlador(QObject):
     def variable_param_1(self, new_val):
         self.variable_param_spinbox_1.setValue(new_val)
 
+    @property
+    def variable_param_2(self):
+        return self.variable_param_spinbox_2.value()
+
+    @variable_param_2.setter
+    def variable_param_2(self, new_e):
+        self.variable_param_spinbox_2.setValue(new_e)
