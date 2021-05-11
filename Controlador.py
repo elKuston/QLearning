@@ -119,7 +119,7 @@ class Controlador(QObject):
             if not nombre_fichero.endswith(extension):
                 nombre_fichero += utils.FORMATO_FICHERO
             print(nombre_fichero)
-            utils.guardar_matriz_Q(nombre_fichero, self.agt.readonly_Q)  # TODO replace with readonly_q
+            utils.guardar_matriz_Q(nombre_fichero, self.agt.readonly_Q)
             self.print_log('Fichero exportado con éxito en '+nombre_fichero)
 
     def abrir_dialogo_lectura(self):
@@ -164,11 +164,8 @@ class Controlador(QObject):
         self.sig_cambiar_tiempo_espera.emit(
             self.espera_slider.value()/1000  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
         )
-        #self.agt.cambiar_tiempo_espera(
-         #   self.espera_slider.value() / 1000)  # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
 
     def reset(self):
-        #self.__cancelar_segundo_plano()
         if self.agt.playing:
             self.togglePlay()
         if self.get_thread_actual() is not None:
@@ -230,15 +227,11 @@ class Controlador(QObject):
         self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
 
     def cambiar_algoritmo(self):
-        #self.agt.set_politica(self.algoritmos[self.dropdown_algoritmo.currentIndex()])
         self.refresh_algoritmo()
         self.reset()
 
     def resolver(self):
         self.accion_actual = RESOLVIENDO
-        #self.__cancelar_segundo_plano()
-        #self.segundo_plano = SegundoPlano(self.agt.resolver)
-        #self.segundo_plano.start()
         if self.get_thread_inactivo() is not None:
             self.get_thread_inactivo().terminate()
         self.get_thread_actual().start()
@@ -256,9 +249,10 @@ class Controlador(QObject):
 
     def print_log(self, text):
         print(text)
+        estaba_abajo = self.log_box.verticalScrollBar().value() == self.log_box.verticalScrollBar().maximum()
         self.__add_to_log_buffer(text)
-        # TODO - Hacer que no baje abajo si no estaba antes abajo (es decir, si el user lo ha movido para mirar algo)
-        self.log_box.verticalScrollBar().setValue(self.log_box.verticalScrollBar().maximum())
+        if estaba_abajo:
+            self.log_box.verticalScrollBar().setValue(self.log_box.verticalScrollBar().maximum())
 
     def limpiar_log_box(self):
         self.log_box.setText('')

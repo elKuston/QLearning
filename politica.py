@@ -51,6 +51,7 @@ class Politica(ABC):
         """
 
 
+
 class EpsilonGreedy(Politica):
     def __init__(self, agente, epsilon, decaimiento_epsilon=1, semilla_random=0):
         """
@@ -159,7 +160,6 @@ class UpperConfidenceBound(Politica):
         b_t = c * math.sqrt(self.H**3*lg/t)
         self.agente.Q[self.agente.estado, accion] = (1-alpha)*self.agente.Q[self.agente.estado, accion] + alpha * (recompensa + self.V[estado_siguiente] + b_t)
         self.V[self.agente.estado] = min(self.H, np.max(self.agente.Q[self.agente.estado]))  # El mínimo entre H y el máximo valor del estado
-
 
     def seleccionar_accion(self):
         # Elegimos la mejor acción según la matriz Q
