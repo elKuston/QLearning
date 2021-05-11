@@ -49,6 +49,14 @@ class Politica(ABC):
         """
         Selecciona una acción
         """
+    @abstractmethod
+    def get_nombre(self):
+        """Devuelve el nombre del algoritmo que será usado para mostrar en el desplegable"""
+
+    @abstractmethod
+    def get_nombres_parametros(self):
+        """Devuelve en una lista los nombres de los hiperparámetros que se usarán para
+        colocar en los labels correspondientes"""
 
 
 class EpsilonGreedy(Politica):
@@ -80,6 +88,12 @@ class EpsilonGreedy(Politica):
         else: #Con probabilidad (1-epsilon) elegimos la mejor acción según la matriz Q
             accion = np.argmax(self.agente.Q[self.agente.estado]) # argmax nos devuelve el índice del mayor elemento del array
         return accion
+
+    def get_nombre(self):
+        return "Épsilon-greedy"
+
+    def get_nombres_parametros(self):
+        return ["Épsilon", "Decaimiento épsilon"]  # TODO texto hardcodeado
 
 
 class SoftMax(Politica):
@@ -124,6 +138,18 @@ class SoftMax(Politica):
         softmax = probabilidades/suma
         return softmax
 
+    def __softmax_notemp(self, q_estado):
+        probabilidades = np.exp(q_estado)  #Sin temp
+        suma = np.sum(probabilidades)
+        softmax = probabilidades/suma
+        return softmax
+
+    def get_nombre(self):
+        return "SoftMax"
+
+    def get_nombres_parametros(self):
+        return ["Temperatura", "Decaimiento temperatura"]  # TODO texto hardcodeado
+
 
 class UpperConfidenceBound(Politica):
     def __init__(self, agente, H, T, semilla_random=0):
@@ -140,9 +166,6 @@ class UpperConfidenceBound(Politica):
         self.N = np.zeros([agente.entorno.observation_space.n, agente.entorno.action_space.n])
         self.V = np.full(agente.entorno.observation_space.n, 0)
 
-
-
-
     def inicializar_q(self):
         super().inicializar_q(valor=self.H)
 
@@ -157,7 +180,6 @@ class UpperConfidenceBound(Politica):
         self.agente.Q[self.agente.estado, accion] = (1-alpha)*self.agente.Q[self.agente.estado, accion] + alpha * (recompensa + self.V[estado_siguiente] + b_t)
         self.V[self.agente.estado] = min(self.H, np.max(self.agente.Q[self.agente.estado]))  # El mínimo entre H y el máximo valor del estado
 
-
     def seleccionar_accion(self):
         # Elegimos la mejor acción según la matriz Q
         accion = np.argmax(self.agente.Q[self.agente.estado])  # argmax nos devuelve el índice del mayor elemento del array
@@ -165,3 +187,9 @@ class UpperConfidenceBound(Politica):
 
     def variar_parametro(self):
         pass
+
+    def get_nombre(self):
+        return "Upper Confidence Bound (UCB)"
+
+    def get_nombres_parametros(self):
+        return ["H", "T"]  # TODO texto hardcodeado

@@ -6,7 +6,7 @@ ACCION_DERECHA = 2
 ACCION_ARRIBA = 3
 
 
-def vacio():
+def vacio(*args):
     pass
 
 
@@ -26,6 +26,9 @@ callback_ejecucion_inicio_ejecucion = vacio  # Lo primero que se ejecuta al llam
 callback_ejecucion_fin_ejecucion = vacio  # Lo último que se ejcuta al finalizar el entrenamiento
 
 
+funcion_print = vacio
+
+
 def ejecutar(agente):
     agente.entorno._max_episode_steps = 9999999999999
     fin = False
@@ -42,7 +45,7 @@ def ejecutar(agente):
         pasos += 1
         callback_ejecucion_fin_paso()
     #entorno.render()
-    agente.print_log("Problema completado en {} pasos; recompensa obtenida:{}".format(pasos, recompensa_total))
+    funcion_print("Problema completado en {} pasos; recompensa obtenida:{}".format(pasos, recompensa_total))
     callback_ejecucion_fin_ejecucion()
     return recompensa
 
@@ -63,7 +66,7 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
     """
 
     politica = agente.politica
-    reset(agente)
+    #reset(agente)  TODO una cosita que he comentado porque no estoy seguro de si quitarla rompe todo el programa jeje
 
     ultimas_recompensas = np.zeros(n_episodios_media) #Lista que contiene las recompensas de los últimos n_episodios_media episodios
 
@@ -76,12 +79,14 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
         pasos = 0 #Contador de los pasos que da el agente
         recompensa_total = 0
         if episodio%1000 == 0:
-            agente.print_log('Entrenando... (episodio: {})'.format(episodio))
+            funcion_print('Entrenando... (episodio: {})'.format(episodio))
         while not es_final: #Mientras no lleguemos a un estado final
             callback_entrenamiento_inicio_paso()
             accion = politica.seleccionar_accion()
 
-            estado_siguiente, recompensa, es_final, info = agente.entorno.step(accion)  # Calcular el siguiente estado
+            estado_siguiente, recompensa, es_final, info = agente.entorno.step(accion)
+            # TODO nuevo cambio: se calcula la media SIN modificar la recompensa
+            recompensa_total += recompensa  # <-- todo joooooder cómo se nota xd
             if modificar_recompensa:
                 if not es_final:
                     recompensa = -0.0001  # Dar pasos tiene un coste (buscamos el camino mínimo)
@@ -92,7 +97,6 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
                     politica.habilitar_variacion()
                     callback_entrenamiento_exito()
             callback_entrenamiento_recompensa()
-            recompensa_total += recompensa
             politica.actualizar_q(accion, estado_siguiente, recompensa, alpha, gamma)
 
             agente.estado = estado_siguiente
@@ -103,12 +107,12 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
         ultimas_recompensas[episodio % n_episodios_media] = recompensa_total
         media = np.mean(ultimas_recompensas)
         if media >= recompensa_media:
-            agente.print_log("El problema ha sido resuelto en {} episodios".format(episodio))
-            agente.print_log("recompensa media obtenida últimos {} episodios: {}".format(n_episodios_media, media))
+            funcion_print("El problema ha sido resuelto en {} episodios".format(episodio))
+            funcion_print("recompensa media obtenida últimos {} episodios: {}".format(n_episodios_media, media))
             break
         #print(agente.Q)
         if episodio % n_episodios_media == 0:
-            agente.print_log("recompensa media obtenida últimos {} episodios: {}".format(n_episodios_media, media))
+            funcion_print("recompensa media obtenida últimos {} episodios: {}".format(n_episodios_media, media))
         callback_enternamiento_fin_episodio()
     # entorno.close()#Cerrar el entorno tras el entrenamiento
     # return Q
