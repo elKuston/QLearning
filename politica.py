@@ -58,6 +58,9 @@ class Politica(ABC):
         """Devuelve en una lista los nombres de los hiperparámetros que se usarán para
         colocar en los labels correspondientes"""
 
+    def __str__(self):
+        return self.get_nombre()+" "+str(list(zip(self.get_nombres_parametros(), [self.parametro, self.variacion_parametro])))
+
 
 class EpsilonGreedy(Politica):
     def __init__(self, agente, epsilon, decaimiento_epsilon=1, semilla_random=0):

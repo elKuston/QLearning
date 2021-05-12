@@ -1,5 +1,6 @@
 import time
 
+import setuptools
 from PyQt5.QtCore import QThread, pyqtSignal
 
 import Controlador
@@ -40,7 +41,7 @@ class ThreadEntrenamiento(QThread):
         self.sig_buf = SignalBuffer(self.sig_actualizar_vista, 16/1000)
 
     def run(self):
-        qlearning.callback_entrenamiento_inicio_entrenamiento = self.actualizar_vista
+        qlearning.callback_entrenamiento_inicio_entrenamiento = self.inicio
         qlearning.callback_entrenamiento_fin_paso = self.actualizar_vista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
         qlearning.funcion_print = self.log
@@ -58,6 +59,13 @@ class ThreadEntrenamiento(QThread):
 
     def cambiar_tiempo_espera(self, nuevo_tiempo):
         self.tiempo_espera = nuevo_tiempo
+
+    def print_policy(self):
+        self.log("Iniciando entrenamiento...\n\tPolitica: "+str(self.agente.politica))
+
+    def inicio(self):
+        self.actualizar_vista()
+        self.print_policy()
 
 
 class ThreadEjecucion(QThread):
