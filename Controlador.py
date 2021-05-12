@@ -57,7 +57,7 @@ class Controlador(QObject):
     def get_algoritmos(self):
         return [EpsilonGreedy(self.agt, self.variable_param_1, self.variable_param_2),
                 SoftMax(self.agt, self.variable_param_1, self.variable_param_2),
-                UpperConfidenceBound(self.agt, 64, 64 * episodios)]
+                UpperConfidenceBound(self.agt, self.variable_param_1, self.variable_param_2)]
 
     def __map_ui(self):
         """
@@ -100,6 +100,10 @@ class Controlador(QObject):
         self.limpiar_log_button.clicked.connect(self.limpiar_log_box)
         self.exportar_q_button.clicked.connect(self.abrir_dialogo_guardado)
         self.importar_q_button.clicked.connect(self.abrir_dialogo_lectura)
+        self.alpha_spinbox.valueChanged.connect(self.refresh_algoritmo)
+        self.gamma_spinbox.valueChanged.connect(self.refresh_algoritmo)
+        self.variable_param_spinbox_1.valueChanged.connect(self.refresh_algoritmo)
+        self.variable_param_spinbox_2.valueChanged.connect(self.refresh_algoritmo)
 
     # TODO - en la branch correspondiente, meter esto en el módulo utils que aquí sobra un poco
     def abrir_dialogo_guardado(self):
@@ -142,9 +146,6 @@ class Controlador(QObject):
     def actualizarVista(self):
         self.vista.update()
 
-    def paso(self):
-        print("paso")
-
     def togglePlay(self):
         self.agt.toggle_play()
         if self.get_thread_actual() is not None:
@@ -166,6 +167,11 @@ class Controlador(QObject):
             # Dividimos entre 1000 porque en la GUI está puesto en ms y aquí lo queremos en s
         )
 
+    def hiperparams_default(self):
+        params = self.agt.politica.get_parametros_default()
+        self.variable_param_spinbox_1.setValue(params[0])
+        self.variable_param_spinbox_2.setValue(params[1])
+
     def reset(self):
         if self.agt.playing:
             self.togglePlay()
@@ -175,9 +181,17 @@ class Controlador(QObject):
         self.refresh_algoritmo()
         self.agt.reset()
         self.generar_thread_actual()
+        self.habilitar_hiperparams()
+        self.hiperparams_default()
         self.actualizarVista()
 
         self.print_log("Reset...")
+
+    def habilitar_hiperparams(self, habilitados=True):
+        self.alpha_spinbox.setDisabled(not habilitados)
+        self.gamma_spinbox.setDisabled(not habilitados)
+        self.variable_param_spinbox_1.setDisabled(not habilitados)
+        self.variable_param_spinbox_2.setDisabled(not habilitados)
 
     def generar_thread_actual(self):
         thread = None
@@ -214,6 +228,7 @@ class Controlador(QObject):
 
         if not self.agt.playing:
             self.togglePlay()
+        self.habilitar_hiperparams(False)
 
     def get_thread_inactivo(self):
         thread = None
@@ -235,9 +250,17 @@ class Controlador(QObject):
         self.alpha_spinbox.setDisabled(es_ucb)
         self.gamma_spinbox.setDisabled(es_ucb)
 
+    def cambiar_rango_hiperparams(self):
+        rangos = self.agt.politica.get_rango_parametros()
+        self.variable_param_spinbox_1.setMinimum(rangos[0][0])
+        self.variable_param_spinbox_1.setMaximum(rangos[0][1])
+        self.variable_param_spinbox_2.setMinimum(rangos[1][0])
+        self.variable_param_spinbox_2.setMaximum(rangos[1][1])
+
     def cambiar_algoritmo(self):
         self.refresh_algoritmo()
         self.cambiar_nombre_hiperparams()
+        self.cambiar_rango_hiperparams()
         self.reset()
 
     def resolver(self):

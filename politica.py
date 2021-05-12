@@ -61,6 +61,15 @@ class Politica(ABC):
     def __str__(self):
         return self.get_nombre()+" "+str(list(zip(self.get_nombres_parametros(), [self.parametro, self.variacion_parametro])))
 
+    @abstractmethod
+    def get_parametros_default(self):
+        """Devuelve el array de los valores por defecto para la política
+        (en el mismo orden que get_nombres_parametros)"""
+
+    def get_rango_parametros(self):
+        """Lista de tuplas que contienen el minimo y maximo valor de los parametros. Por defecto [0,1]"""
+        return [(0, 1), (0, 1)]
+
 
 class EpsilonGreedy(Politica):
     def __init__(self, agente, epsilon, decaimiento_epsilon=1, semilla_random=0):
@@ -97,6 +106,9 @@ class EpsilonGreedy(Politica):
 
     def get_nombres_parametros(self):
         return ["Épsilon", "Decaimiento épsilon"]  # TODO texto hardcodeado
+
+    def get_parametros_default(self):
+        return [1, 0.99]
 
 
 class SoftMax(Politica):
@@ -153,6 +165,9 @@ class SoftMax(Politica):
     def get_nombres_parametros(self):
         return ["Temperatura", "Decaimiento temperatura"]  # TODO texto hardcodeado
 
+    def get_parametros_default(self):
+        return [0.5, 0.99]
+
 
 class UpperConfidenceBound(Politica):
     def __init__(self, agente, H, T, semilla_random=0):
@@ -196,3 +211,12 @@ class UpperConfidenceBound(Politica):
 
     def get_nombres_parametros(self):
         return ["H", "T"]  # TODO texto hardcodeado
+
+    def get_parametros_default(self):
+        return [self.agente.entorno.observation_space.n, self.agente.entorno.observation_space.n*10000]  # Todo ese 10k me lo he inventado, hay que relacionarlo co el numero total de pasos
+
+    def get_rango_parametros(self):
+        """Lista de tuplas que contienen el minimo y maximo valor de los parametros. Por defecto [0,1]"""
+        return [(-np.inf, np.inf), (-np.inf, np.inf)]
+
+
