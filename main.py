@@ -7,6 +7,7 @@ from Agente import Agente
 import gym
 from ventanas import VentanaPrincipal
 from Controlador import Controlador
+from politica import *
 
 alpha = 0.1  # Tasa de aprendizaje
 gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
@@ -19,6 +20,9 @@ n_episodios_media = 100
 
 def main():
     c = Controlador()
+    c.registrar_algoritmo(SoftMax)
+    c.registrar_algoritmo(UpperConfidenceBound)
+    c.start()
 
 
 if __name__ == '__main__':

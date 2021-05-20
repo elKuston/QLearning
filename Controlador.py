@@ -4,7 +4,8 @@ import time
 from Agente import Agente
 import frozenLake
 
-from politica import EpsilonGreedy, SoftMax, UpperConfidenceBound
+from typing import Type
+from politica import Politica, EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanas import VentanaPrincipal, VentanaMetricas
 from threadsSegundoPlano import *
 from PyQt5.QtWidgets import QFileDialog
@@ -23,41 +24,66 @@ n_episodios_media = 100
 class Controlador(QObject):
     sig_cambiar_tiempo_espera = pyqtSignal(float)
 
-    def __init__(self):
+    def __init__(self, algoritmo_base: Type[Politica] = EpsilonGreedy):
+        """
+        Inicializa y prepara los componentes para que se puedan registrar los algoritmos.
+        Requiere al menos un algoritmo para poder iniciar la vista etc.
+        En este caso, se usará por defecto EpsilonGreedy"""
+
         super().__init__()
+        self.algoritmos_registrados = []  # Almacena las CLASES de los algoritmos
         self.__init_log_buffer(1)
         self.accion_actual = ENTRENANDO
         self.thread_entrenamiento = None
         self.thread_resolucion = None
-        app = QtWidgets.QApplication(sys.argv)
+        self.app = QtWidgets.QApplication(sys.argv)
         self.nombres_mapas = frozenLake.nombres_mapas()
         self.mapas = frozenLake.mapas()
         self.tamanos_mapas = frozenLake.tamanos_mapas()
         self.mapa_default = 0
         entorno = frozenLake.make(self.mapas[self.mapa_default])
         self.agt = Agente(entorno, self)
-        self.vista = VentanaPrincipal(self.tamanos_mapas[self.mapa_default], self.agt, app.primaryScreen().size())
+        self.vista = VentanaPrincipal(self.tamanos_mapas[self.mapa_default], self.agt, self.app.primaryScreen().size())
 
         self.__map_ui()
+
+        self.registrar_algoritmo(algoritmo_base)
+        self.__map_comportamiento_ui()
 
         self.alpha = 0.1  # Tasa de aprendizaje
         self.gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
         self.variable_param_1 = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
         self.variable_param_2 = 0.99  # POR DEFECTO es el epsilon_decay
+        self.algoritmos = []
 
-        self.algoritmos = self.get_algoritmos()
+    def start(self):
+        """Una vez registrados los algoritmos, este método termina de configurar los componentes e inicia la vista"""
+        self.algoritmos = self.get_algoritmos()  # Almacena las INSTANCIAS de los algoritmos
 
         self.agt.set_politica(self.algoritmos[0])
 
         self.vista.show()
         # self.vista_metricas = VentanaMetricas()
         # self.vista_metricas.show()
-        sys.exit(app.exec_())
+        sys.exit(self.app.exec_())
 
     def get_algoritmos(self):
-        return [EpsilonGreedy(self.agt, self.variable_param_1, self.variable_param_2),
-                SoftMax(self.agt, self.variable_param_1, self.variable_param_2),
-                UpperConfidenceBound(self.agt, self.variable_param_1, self.variable_param_2)]
+        algoritmos = []
+        for alg in self.algoritmos_registrados:
+            algoritmos.append(alg(self.agt, self.variable_param_1, self.variable_param_2))
+        return algoritmos
+
+    def registrar_algoritmo(self, clase: Type[Politica], recargar_dropdown=True):
+        print("registrando", clase)
+        self.algoritmos_registrados.append(clase)
+        if recargar_dropdown:
+            self.recargar_dropdown()
+
+    def recargar_dropdown(self):
+        nombres_algoritmos = [alg.get_nombre() for alg in self.get_algoritmos()]
+        self.dropdown_algoritmo.clear()
+        self.dropdown_algoritmo.addItems(nombres_algoritmos)
+        self.dropdown_algoritmo.currentIndexChanged.connect(self.cambiar_algoritmo)
 
     def __map_ui(self):
         """
@@ -85,14 +111,13 @@ class Controlador(QObject):
         self.variable_param_label_1 = self.vista.variableParamLabel1
         self.variable_param_label_2 = self.vista.variableParamLabel2
 
+    def __map_comportamiento_ui(self):
         # Mapeamos cada widget con su comportamiento
         self.play_pause_button.clicked.connect(self.togglePlay)
         self.espera_slider.valueChanged.connect(self.cambiar_tiempo_espera)
         self.reset_button.clicked.connect(self.reset)
         self.entrenar_button.clicked.connect(self.entrenar)
-        nombres_algoritmos = [alg.get_nombre() for alg in self.get_algoritmos()]
-        self.dropdown_algoritmo.addItems(nombres_algoritmos)
-        self.dropdown_algoritmo.currentIndexChanged.connect(self.cambiar_algoritmo)
+        #self.recargar_dropdown()
         self.resolver_button.clicked.connect(self.resolver)
         self.dropdown_mapa.addItems(self.nombres_mapas)
         self.dropdown_mapa.setCurrentIndex(self.mapa_default)
