@@ -5,7 +5,7 @@ import qlearning
 import numpy as np
 from Agente import Agente
 import gym
-from ventanaPrincipal import VentanaPrincipal
+from ventanas import VentanaPrincipal
 from Controlador import Controlador
 
 alpha = 0.1  # Tasa de aprendizaje

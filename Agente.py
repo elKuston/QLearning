@@ -1,11 +1,7 @@
 import numpy as np
-import gym
 import qlearning
-import random
-import sys
 import time
-
-from politica import Politica
+from frozenLake import FrozenLake
 
 
 class Agente:
@@ -18,35 +14,40 @@ class Agente:
     callback_entrenamiento_exito = vacio  # Se ejecuta al llegar al estado objetivo
     callback_entrenamiento_fracaso = vacio  # Se ejecuta al llegar a un estado final no objetivo
 
-    def __init__(self, entorno: gym.Env, controlador):
+    def reset(self):
+        self.estado = None
+        #self.entorno.reset()
+        qlearning.reset(self)
+
+    def set_politica(self, politica):
+        self.politica = politica
+
+    def __init__(self, entorno: FrozenLake, controlador):
         self.entorno = entorno
         self.estado = None
         self.controlador = controlador
         self.Q = np.zeros([entorno.observation_space.n, entorno.action_space.n])  # El agente contiene su matriz Q
+        self.playing = False
+        self.tiempo_espera = 0.01
+        self.politica = None  # Algo hay que poner para que no se queje de que está definido fuera del init
 
-    def resolver(self):
-        self.entorno._max_episode_steps = 9999999999999
-        fin = False
-        estado = self.entorno.reset()
-        pasos = 0
-        print("Resolviendo problema")
-        while not fin:
-            accion = np.argmax(self.Q[estado])
-            estado, recompensa, fin, info = self.entorno.step(accion)
-            pasos+=1
-            self.controlador.actualizarVista()
-            time.sleep(1)
-        print("Problema completado en {} pasos".format(pasos))
+        self.ultimo_refresco = time.time()
 
-    def entrenar(self, alpha, gamma, episodios, recompensa_media, n_episodios_media, politica):
-        qlearning.callback_entrenamiento_fin_paso = self.controlador.actualizarVista
-        qlearning.callback_entrenamiento_inicio_paso = self.esperar
-        qlearning.entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, self, politica)
+    @property
+    def readonly_Q(self):  #TODO cambiar por una property Q protegida por mutex
+        return np.copy(self.Q)
 
-    def esperar(self):
-        pass
-        #time.sleep(0.1)
+    def toggle_play(self):
+        self.playing = not self.playing
 
+    def cambiar_tiempo_espera(self, tiempo_espera):
+        self.tiempo_espera = tiempo_espera
 
+    def __print_log(self, text):
+
+        if self.controlador is not None:
+            self.controlador.print_log(text)
+        else:
+            print("Error: Controlador is None")
 
 from Controlador import Controlador
