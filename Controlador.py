@@ -1,3 +1,5 @@
+import random
+
 from PyQt5 import QtWidgets, uic
 import sys
 import time
@@ -63,9 +65,10 @@ class Controlador(QObject):
         self.agt.set_politica(self.algoritmos[0])
 
         self.vista.show()
-        # self.vista_metricas = VentanaMetricas()
-        # self.vista_metricas.show()
+        self.vista_metricas = VentanaMetricas(['0','1'])
+        self.vista_metricas.show()
         sys.exit(self.app.exec_())
+
 
     def get_algoritmos(self):
         algoritmos = []
@@ -74,13 +77,15 @@ class Controlador(QObject):
         return algoritmos
 
     def registrar_algoritmo(self, clase: Type[Politica], recargar_dropdown=True):
-        print("registrando", clase)
         self.algoritmos_registrados.append(clase)
         if recargar_dropdown:
             self.recargar_dropdown()
 
+    def get_nombres_algoritmos(self):
+        return [alg.get_nombre() for alg in self.get_algoritmos()]
+
     def recargar_dropdown(self):
-        nombres_algoritmos = [alg.get_nombre() for alg in self.get_algoritmos()]
+        nombres_algoritmos = self.get_nombres_algoritmos()
         self.dropdown_algoritmo.clear()
         self.dropdown_algoritmo.addItems(nombres_algoritmos)
         self.dropdown_algoritmo.currentIndexChanged.connect(self.cambiar_algoritmo)
@@ -232,8 +237,16 @@ class Controlador(QObject):
 
         thread.sig_actualizar_vista.connect(self.actualizarVista)
         thread.sig_print.connect(self.print_log)
+        thread.sig_plot.connect(self.add_plot_data)
         self.cambiar_tiempo_espera()
         return thread
+
+    def add_plot_data(self, i):
+            r = random.random() + i
+            y = r**2
+            self.vista_metricas.add_plot_data(r, y, "0", True)
+            self.vista_metricas.add_plot_data(y, r, "1", True)
+            #time.sleep(1)
 
     def get_thread_actual(self):
         thread = None
