@@ -8,7 +8,7 @@ import frozenLake
 
 from typing import Type
 from politica import Politica, EpsilonGreedy, SoftMax, UpperConfidenceBound
-from ventanas import VentanaPrincipal, VentanaMetricas
+from ventanas import *
 from threadsSegundoPlano import *
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -65,7 +65,7 @@ class Controlador(QObject):
         self.agt.set_politica(self.algoritmos[0])
 
         self.vista.show()
-        self.vista_metricas = VentanaMetricas(self.get_nombres_algoritmos())
+        self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
         self.vista_metricas.show()
         sys.exit(self.app.exec_())
 
@@ -241,12 +241,12 @@ class Controlador(QObject):
         self.cambiar_tiempo_espera()
         return thread
 
-    def add_plot_data(self, i):
-            r = random.random() + i
-            y = r**2
-            self.vista_metricas.add_plot_data(r, y, self.get_nombres_algoritmos()[0])
-            self.vista_metricas.add_plot_data(y, r, self.get_nombres_algoritmos()[1])
-            #time.sleep(1)
+    def add_plot_data(self, x, y):
+            #r = random.random() + i
+            #y = r**2
+            #self.vista_metricas.add_plot_data(r, y, self.get_nombres_algoritmos()[0])
+            #self.vista_metricas.add_plot_data(y, r, self.get_nombres_algoritmos()[1])
+        self.vista_metricas.add_plot_data(x,y,self.agt.politica.get_nombre())
 
     def get_thread_actual(self):
         thread = None
@@ -386,3 +386,5 @@ class Controlador(QObject):
     @variable_param_2.setter
     def variable_param_2(self, new_e):
         self.variable_param_spinbox_2.setValue(new_e)
+
+
