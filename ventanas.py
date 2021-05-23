@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, uic
+from PyQt5 import QtGui, QtCore, QtWidgets, uic
 from entornoWidget import EntornoWidget
 import pyqtgraph as pg
 
@@ -23,28 +23,62 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
         self.repaint()
 
 
-class VentanaMetricas(QtWidgets.QMainWindow):
-    def __init__(self, lista_nombres_algoritmos):
-        super().__init__()
-        pg.setConfigOption('background', 'w')
-        pg.setConfigOption('foreground', 'k')
-        #uic.loadUi('ventana_metricas.ui', self)
-        self.plot_widget = pg.PlotWidget()
-        self.setCentralWidget(self.plot_widget)
-        self.plot_widget.setTitle("Métricas")
-        self.plot_widget.addLegend()
+import sys
+import matplotlib
+matplotlib.use('Qt5Agg')
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
-        self.plot_data_x = {"none": []}
-        self.plot_data_y = {"none": []}
-        for alg in lista_nombres_algoritmos:
+
+class VentanaMetricas(QtWidgets.QMainWindow):
+
+    class Canvas(FigureCanvasQTAgg):
+        def __init__(self, parent=None, width=5, height=4, dpi=100):
+            fig = Figure(figsize=(width, height), dpi=dpi)
+            self.axes = fig.add_subplot(111)
+            super(VentanaMetricas.Canvas, self).__init__(fig)
+
+    def __init__(self, lista_algoritmos):
+        super().__init__()
+        self.lista_algoritmos = lista_algoritmos
+        self.lienzo = VentanaMetricas.Canvas(self, width=5, height=4, dpi=100)
+        toolbar = NavigationToolbar(self.lienzo, self)
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(toolbar)
+        layout.addWidget(self.lienzo)
+        widget = QtWidgets.QWidget()
+        widget.setLayout(layout)
+
+        self.setCentralWidget(widget)
+
+        self.show()
+        self.__referencias_plt = dict([])
+        self.plot_data_x = dict([])
+        self.plot_data_y = dict([])
+
+        for alg in lista_algoritmos:
             self.plot_data_x[alg] = []
             self.plot_data_y[alg] = []
-        # for i in range(n_plots):
-        #     self.plot_data.append([[], []])  # Para cada plot vamos a tener el objeto para plotear y una lista con todas sus x e y
 
 
-    def add_plot_data(self, x, y, alg_name, clear):
+    def add_plot_data(self, x, y, alg_name):
+        if alg_name not in self.plot_data_x:
+            self.plot_data_x[alg_name] = []
         self.plot_data_x[alg_name].append(x)
+        if alg_name not in self.plot_data_y:
+            self.plot_data_y[alg_name] = []
         self.plot_data_y[alg_name].append(y)
-        self.plot_widget.plot(self.plot_data_x[alg_name], self.plot_data_y[alg_name], name=alg_name, clear=clear)
-        self.repaint()
+
+        #if alg_name not in self.__referencias_plt:
+        self.lienzo.axes.cla()
+        for alg in self.lista_algoritmos:
+            refs = self.lienzo.axes.plot(self.plot_data_x[alg], self.plot_data_y[alg], label=alg)
+            #self.__referencias_plt[alg_name] = refs[0]
+        #else:
+        #    self.__referencias_plt[alg_name].set_xdata(self.plot_data_x[alg_name])
+        #    self.__referencias_plt[alg_name].set_ydata(self.plot_data_y[alg_name])
+
+        self.lienzo.axes.legend(loc='upper left')
+        self.lienzo.draw()

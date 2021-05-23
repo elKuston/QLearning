@@ -65,7 +65,7 @@ class Controlador(QObject):
         self.agt.set_politica(self.algoritmos[0])
 
         self.vista.show()
-        self.vista_metricas = VentanaMetricas(['0','1'])
+        self.vista_metricas = VentanaMetricas(self.get_nombres_algoritmos())
         self.vista_metricas.show()
         sys.exit(self.app.exec_())
 
@@ -244,8 +244,8 @@ class Controlador(QObject):
     def add_plot_data(self, i):
             r = random.random() + i
             y = r**2
-            self.vista_metricas.add_plot_data(r, y, "0", True)
-            self.vista_metricas.add_plot_data(y, r, "1", True)
+            self.vista_metricas.add_plot_data(r, y, self.get_nombres_algoritmos()[0])
+            self.vista_metricas.add_plot_data(y, r, self.get_nombres_algoritmos()[1])
             #time.sleep(1)
 
     def get_thread_actual(self):

@@ -1,3 +1,4 @@
+import array
 import time
 
 import setuptools
@@ -17,15 +18,25 @@ class SignalBuffer:
         self.ultima_emision = time.time()
 
     def emit(self, *params):
+        """
+
+        :param params:
+        :return: Si la señal se ha emitido o no
+        """
+        emitted = False
         t = time.time()
-        if t - self.ultima_emision >= 16/1000:  # Solo emite señales cada 16ms (60hz)
+        if t - self.ultima_emision >= self.frecuencia_max:  # Solo emite señales cada 16ms (60hz)
             self.ultima_emision = t
             self.sig.emit(*params)
+            emitted = True
+
+        return emitted
 
 
 class ThreadEntrenamiento(QThread):
     sig_actualizar_vista = pyqtSignal()
     sig_print = pyqtSignal(str)
+    sig_plot = pyqtSignal(int)  # x and y
 
     def __init__(self, controlador: Controlador, agente, alpha, gamma, episodios, recompensa_media, n_episodios_media):
         super().__init__()
@@ -40,6 +51,9 @@ class ThreadEntrenamiento(QThread):
         self.n_episodios_media = n_episodios_media
         self.sig_buf = SignalBuffer(self.sig_actualizar_vista, 16/1000)
 
+        self.plot_buf = SignalBuffer(self.sig_plot, 1)  # TODO
+        self.i = 0
+
     def run(self):
         qlearning.callback_entrenamiento_inicio_entrenamiento = self.inicio
         qlearning.callback_entrenamiento_fin_paso = self.actualizar_vista
@@ -50,6 +64,8 @@ class ThreadEntrenamiento(QThread):
 
     def actualizar_vista(self):
         self.sig_buf.emit()
+        if self.plot_buf.emit(self.i):
+            self.i += 1
 
     def log(self, message):
         self.sig_print.emit(message)
