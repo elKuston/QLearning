@@ -66,9 +66,10 @@ class Controlador(QObject):
 
         self.vista.show()
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
-        self.vista_metricas.show()
         sys.exit(self.app.exec_())
 
+    def mostrar_metricas(self):
+        self.vista_metricas.show()
 
     def get_algoritmos(self):
         algoritmos = []
@@ -106,15 +107,20 @@ class Controlador(QObject):
         self.log_box = self.vista.logTextbox
         self.print_log('Q-Learning')
         self.flush_log()
-        self.limpiar_log_button = self.vista.limpiarLogButton
-        self.exportar_q_button = self.vista.exportarMatrizButton
-        self.importar_q_button = self.vista.importarMatrizButton
+        #self.limpiar_log_button = self.vista.limpiarLogButton
+        self.limpiar_log_action = self.vista.limpiarLogAction
+        #self.exportar_q_button = self.vista.exportarMatrizButton
+        #self.importar_q_button = self.vista.importarMatrizButton
+        #  Reemplazado por los dos de abajo (menu de barra superior en vez de botones)
+        self.exportar_q_action = self.vista.exportarMatrizAction
+        self.importar_q_action = self.vista.importarMatrizAction
         self.alpha_spinbox = self.vista.alphaSpinbox
         self.gamma_spinbox = self.vista.gammaSpinbox
         self.variable_param_spinbox_1 = self.vista.variableParamSpinbox1
         self.variable_param_spinbox_2 = self.vista.variableParamSpinbox2
         self.variable_param_label_1 = self.vista.variableParamLabel1
         self.variable_param_label_2 = self.vista.variableParamLabel2
+        self.mostrar_metricas_action = self.vista.mostrarMetricasAction
 
     def __map_comportamiento_ui(self):
         # Mapeamos cada widget con su comportamiento
@@ -127,13 +133,18 @@ class Controlador(QObject):
         self.dropdown_mapa.addItems(self.nombres_mapas)
         self.dropdown_mapa.setCurrentIndex(self.mapa_default)
         self.dropdown_mapa.currentIndexChanged.connect(self.cambiar_mapa)
-        self.limpiar_log_button.clicked.connect(self.limpiar_log_box)
-        self.exportar_q_button.clicked.connect(self.abrir_dialogo_guardado)
-        self.importar_q_button.clicked.connect(self.abrir_dialogo_lectura)
+        #self.limpiar_log_button.clicked.connect(self.limpiar_log_box)
+        self.limpiar_log_action.triggered.connect(self.limpiar_log_box)
+        #self.exportar_q_button.clicked.connect(self.abrir_dialogo_guardado)
+        #self.importar_q_button.clicked.connect(self.abrir_dialogo_lectura)
+        #  Reemplazado por los dos de abajo (menu de barra superior en vez de botones)
+        self.exportar_q_action.triggered.connect(self.abrir_dialogo_guardado)
+        self.importar_q_action.triggered.connect(self.abrir_dialogo_lectura)
         self.alpha_spinbox.valueChanged.connect(self.refresh_algoritmo)
         self.gamma_spinbox.valueChanged.connect(self.refresh_algoritmo)
         self.variable_param_spinbox_1.valueChanged.connect(self.refresh_algoritmo)
         self.variable_param_spinbox_2.valueChanged.connect(self.refresh_algoritmo)
+        self.mostrar_metricas_action.triggered.connect(self.mostrar_metricas)
 
     # TODO - en la branch correspondiente, meter esto en el módulo utils que aquí sobra un poco
     def abrir_dialogo_guardado(self):

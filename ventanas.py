@@ -129,9 +129,6 @@ class VentanaMetricas(QtWidgets.QMainWindow):
 from PyQt5 import QtWidgets, QtCore
 from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
-import sys  # We need sys so that we can pass argv to QApplication
-import os
-import colorsys
 
 import numpy as np
 import utils
@@ -141,8 +138,6 @@ import utils
 class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
     def __init__(self, lista_algoritmos):
         super().__init__()
-        HSV_tuples = [(x*1.0/len(lista_algoritmos), 0.5, 0.5) for x in range(len(lista_algoritmos))]
-        RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
 
         #uic.loadUi('ventana_metricas.ui', self)
         #self.graphWidget = self.pyqtGraph
@@ -157,11 +152,8 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
         for i in range(len(lista_algoritmos)):
             self.__colores[lista_algoritmos[i]] = tuple(np.array(colores[i])*255)
 
-        print(self.__colores)
-
         for alg in lista_algoritmos:
             self.__referencias_plt[alg] = None
-            print(alg, self.__colores[alg])
             self.plot_data_x[alg] = []
             self.plot_data_y[alg] = []
 
