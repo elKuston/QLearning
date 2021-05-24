@@ -2,6 +2,9 @@ from PyQt5 import QtGui, QtCore, QtWidgets, uic
 from entornoWidget import EntornoWidget
 import pyqtgraph as pg
 
+import numpy as np
+import utils
+
 alto = 300
 ancho = 400
 
@@ -21,118 +24,6 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
         self.entorno.deleteLater()
         self.entorno = nuevo_entorno
         self.repaint()
-
-
-import sys
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-from PyQt5.QtCore import QThread, QObject
-
-
-class VentanaMetricas(QtWidgets.QMainWindow):
-
-    class Canvas(FigureCanvasQTAgg):
-        def __init__(self, parent=None, width=5, height=4, dpi=100):
-            fig = Figure(figsize=(width, height), dpi=dpi)
-            self.axes = fig.add_subplot(111)
-            super(VentanaMetricas.Canvas, self).__init__(fig)
-
-    class PlotThread(QObject):
-        def __init__(self, lienzo, x, y, plot_refs, alg):
-            super().__init__()
-            self.lienzo = lienzo
-            self.x = x
-            self.y = y
-            self.plot_refs = plot_refs
-            self.alg = alg
-
-        def plot(self):
-            if self.plot_refs[self.alg] is None:
-                refs = self.lienzo.axes.plot(self.x, self.y, label=self.alg)
-                self.plot_refs[self.alg] = refs[0]
-            else:
-                self.plot_refs[self.alg].set_xdata(self.x)
-                self.plot_refs[self.alg].set_ydata(self.y)
-
-            self.lienzo.axes.set_xlim(0, max(self.x)+10)
-            self.lienzo.axes.legend(loc='lower right')
-            self.lienzo.draw()
-
-
-    def __init__(self, lista_algoritmos):
-        super().__init__()
-        self.lista_algoritmos = lista_algoritmos
-        self.plot_thread = QThread()
-        self.lienzo = VentanaMetricas.Canvas(self, width=5, height=4, dpi=100)
-        toolbar = NavigationToolbar(self.lienzo, self)
-
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(toolbar)
-        layout.addWidget(self.lienzo)
-        widget = QtWidgets.QWidget()
-        widget.setLayout(layout)
-
-        self.setCentralWidget(widget)
-
-        self.show()
-
-
-        plt.style.use('fivethirtyeight')
-
-        self.lienzo.axes.set_title('Tíulo PROVISIONAL')
-        self.lienzo.axes.set_xlabel('Nº episodio')
-        self.lienzo.axes.set_ylabel('Recompensa media')
-
-        self.__referencias_plt = dict([])
-        self.plot_data_x = dict([])
-        self.plot_data_y = dict([])
-
-        for alg in lista_algoritmos:
-            self.__referencias_plt[alg] = None
-            self.plot_data_x[alg] = []
-            self.plot_data_y[alg] = []
-
-    def add_plot_data(self, x, y, alg_name):
-        if alg_name not in self.plot_data_x:
-            self.plot_data_x[alg_name] = []
-        for x_ in x:
-            self.plot_data_x[alg_name].append(x_)
-        if alg_name not in self.plot_data_y:
-            self.plot_data_y[alg_name] = []
-        for y_ in y:
-            self.plot_data_y[alg_name].append(y_)
-
-        # self.lienzo.axes.cla()
-        # for alg in self.lista_algoritmos:
-        #     if self.__referencias_plt[alg] is None:
-        #         refs = self.lienzo.axes.plot(self.plot_data_x[alg], self.plot_data_y[alg], label=alg)
-        #         self.__referencias_plt[alg] = refs[0]
-        #     else:
-        #         self.__referencias_plt[alg].set_data(self.plot_data_x[alg], self.plot_data_y[alg])
-        #
-        # self.lienzo.axes.set_xlim(0, max(x))
-        # self.lienzo.axes.set_ylim(-1, max(0.2, max(y)+0.1))
-        # self.lienzo.axes.legend(loc='lower right')
-        # self.lienzo.draw()
-
-
-
-        plotter = VentanaMetricas.PlotThread(self.lienzo, self.plot_data_x[alg_name], self.plot_data_y[alg_name],
-                                             self.__referencias_plt, alg_name)
-        plotter.moveToThread(self.plot_thread)
-        plotter.plot()
-        #plotter.start()
-
-from PyQt5 import QtWidgets, QtCore
-from pyqtgraph import PlotWidget, plot
-import pyqtgraph as pg
-
-import numpy as np
-import utils
-
 
 
 class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
