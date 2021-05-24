@@ -66,6 +66,7 @@ class Controlador(QObject):
 
         self.vista.show()
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
+        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos())
         sys.exit(self.app.exec_())
 
     def mostrar_metricas(self):

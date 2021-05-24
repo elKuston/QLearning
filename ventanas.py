@@ -5,6 +5,10 @@ import pyqtgraph as pg
 import numpy as np
 import utils
 
+import random
+from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
+from PyQt5.Qt import Qt
+
 alto = 300
 ancho = 400
 
@@ -80,3 +84,33 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
             self.plot_data_y[alg_name].append(y_)
 
         self.plot(self.plot_data_x[alg_name], self.plot_data_y[alg_name], alg_name, self.__colores[alg_name])
+
+
+class VentanaBenchmark(QtWidgets.QMainWindow):
+    def __init__(self, lista_algoritmos):
+        super().__init__()
+
+        self.show()
+
+        datos = [random.uniform(0, 10) for _ in range(len(lista_algoritmos))]
+        barset = QBarSet('Pasos hasta fin del entrenamiento')
+        barset.append(datos)
+        series = QBarSeries()
+        series.append(barset)
+
+
+        tupla_algoritmos = tuple(lista_algoritmos)
+        eje_x = QBarCategoryAxis()
+        eje_x.append(tupla_algoritmos)
+        eje_y = QValueAxis()
+
+        grafico = QChart()
+        grafico.addSeries(series)
+        grafico.setAnimationOptions(QChart.SeriesAnimations)
+        grafico.addAxis(eje_x, Qt.AlignBottom)
+        grafico.addAxis(eje_y, Qt.AlignLeft)
+
+        grafico.legend().setVisible(True)
+
+        chartView = QChartView(grafico)
+        self.setCentralWidget(chartView)
