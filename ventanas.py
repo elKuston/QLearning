@@ -133,37 +133,44 @@ import sys  # We need sys so that we can pass argv to QApplication
 import os
 import colorsys
 
+import numpy as np
+import utils
+
+
+
 class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
     def __init__(self, lista_algoritmos):
         super().__init__()
         HSV_tuples = [(x*1.0/len(lista_algoritmos), 0.5, 0.5) for x in range(len(lista_algoritmos))]
         RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
 
-        uic.loadUi('ventana_metricas.ui', self)
-        self.graphWidget = self.pyqtGraph
-        #self.graphWidget = pg.PlotWidget()
-        #self.setCentralWidget(self.graphWidget)
+        #uic.loadUi('ventana_metricas.ui', self)
+        #self.graphWidget = self.pyqtGraph
+        self.graphWidget = pg.PlotWidget()
+        self.setCentralWidget(self.graphWidget)
 
         self.__referencias_plt = dict([])
         self.__colores = dict([])
         self.plot_data_x = dict([])
         self.plot_data_y = dict([])
+        colores = utils.generar_n_colores(len(lista_algoritmos))
+        for i in range(len(lista_algoritmos)):
+            self.__colores[lista_algoritmos[i]] = tuple(np.array(colores[i])*255)
 
-        i = 0
+        print(self.__colores)
+
         for alg in lista_algoritmos:
             self.__referencias_plt[alg] = None
-            self.__colores[alg] = RGB_tuples[i]
             print(alg, self.__colores[alg])
             self.plot_data_x[alg] = []
             self.plot_data_y[alg] = []
-            i+=1
 
         self.graphWidget.setBackground('w')
         # Add Title
-        self.graphWidget.setTitle("Título", color="k", size="20pt")
+        self.graphWidget.setTitle("Eficacia del entrenamiento", color="k", size="20pt")
         # Add Axis Labels
-        styles = {"color": "#f00", "font-size": "10pt"}
-        self.graphWidget.setLabel("left", "Recompensa media (últimos 100 episodios)", **styles)
+        styles = {"color": "k", "font-size": "10pt"}
+        self.graphWidget.setLabel("left", "Recompensa media 100 eps", **styles)
         self.graphWidget.setLabel("bottom", "Nº Episodio", **styles)
         # Add legend
         self.graphWidget.addLegend()
@@ -173,7 +180,7 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
         self.graphWidget.setAutoVisible(y=True, x=True)
 
     def plot(self, x, y, alg_name, color):
-        pen = pg.mkPen(color=color)
+        pen = pg.mkPen(color=color, width=3)
         if self.__referencias_plt[alg_name] is None:
             self.__referencias_plt[alg_name] = self.graphWidget.plot(x, y, name=alg_name, pen=pen)#, symbol='+', symbolSize=30, symbolBrush=(color))
         else:
