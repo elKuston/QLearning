@@ -21,3 +21,6 @@ qt5-applications==5.15.2.2.1
 qt5-tools==5.15.2.1.0.1
 scipy==1.6.1
 six==1.15.0
+
+pyqtgraph~=0.12.1
+setuptools~=53.0.0
