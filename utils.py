@@ -1,4 +1,5 @@
 import random
+import qlearning
 
 FORMATO_FICHERO = '.pol'
 
@@ -47,6 +48,10 @@ def generar_n_colores(n, pastel_factor=0, seed=8):
 
     return colores
 
+
+def reset_qlearning_callbacks():
+    for callback in qlearning.lista_callbacks:
+        callback = qlearning.vacio()
 
 #  Credits to: https://gist.github.com/adewes/5884820
 def get_random_color(pastel_factor=0.5):

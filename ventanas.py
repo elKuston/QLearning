@@ -1,13 +1,15 @@
-from PyQt5 import QtGui, QtCore, QtWidgets, uic
-from entornoWidget import EntornoWidget
-import pyqtgraph as pg
+import random
 
 import numpy as np
-import utils
-
-import random
-from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
+import pyqtgraph as pg
+from PyQt5 import QtWidgets, uic
 from PyQt5.Qt import Qt
+from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
+
+import utils
+from entornoWidget import EntornoWidget
+from politica import EpsilonGreedy
+from threadsSegundoPlano import ThreadBenchmark
 
 alto = 300
 ancho = 400
@@ -87,17 +89,19 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
 
 
 class VentanaBenchmark(QtWidgets.QMainWindow):
-    def __init__(self, lista_algoritmos):
+
+    def __init__(self, lista_algoritmos, entorno, controlador, alpha, gamma, param1, param2):
         super().__init__()
 
-        self.show()
+        # self.show()
+
+        self.lista_algoritmos = lista_algoritmos
 
         datos = [random.uniform(0, 10) for _ in range(len(lista_algoritmos))]
         barset = QBarSet('Pasos hasta fin del entrenamiento')
         barset.append(datos)
         series = QBarSeries()
         series.append(barset)
-
 
         tupla_algoritmos = tuple(lista_algoritmos)
         eje_x = QBarCategoryAxis()
@@ -114,3 +118,16 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
 
         chartView = QChartView(grafico)
         self.setCentralWidget(chartView)
+
+        self.datos = dict([])
+        for alg in self.lista_algoritmos:
+            self.datos[alg] = None
+
+        benchmark = ThreadBenchmark(entorno, controlador, EpsilonGreedy,10000,alpha, gamma, param1, param2)
+        benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion)
+        benchmark.start()
+
+        self.show()
+
+    def anadir_medicion(self, medida):
+        print('señal recibida:', medida, 'pasos')

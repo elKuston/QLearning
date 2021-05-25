@@ -1,11 +1,13 @@
-import array
 import time
+from typing import Type
 
-import setuptools
 from PyQt5.QtCore import QThread, pyqtSignal
 
+from Agente import Agente
 import Controlador
 import qlearning
+import utils
+from politica import Politica
 
 
 class SignalBuffer:
@@ -64,6 +66,7 @@ class ThreadEntrenamiento(QThread):
         self.i = 0
 
     def run(self):
+        utils.reset_qlearning_callbacks()
         qlearning.callback_entrenamiento_inicio_entrenamiento = self.inicio
         qlearning.callback_entrenamiento_fin_paso = self.actualizar_vista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
@@ -113,6 +116,7 @@ class ThreadEjecucion(QThread):
         self.sig_buf = SignalBuffer(self.sig_actualizar_vista, 16/1000, 0)
 
     def run(self):
+        utils.reset_qlearning_callbacks()
         qlearning.callback_ejecucion_inicio_ejecucion = self.actualizar_vista
         qlearning.callback_ejecucion_fin_paso = self.actualizar_vista
         qlearning.callback_ejecucion_inicio_paso = self.esperar
@@ -132,3 +136,37 @@ class ThreadEjecucion(QThread):
         self.tiempo_espera = nuevo_tiempo
 
 
+class ThreadBenchmark(QThread):
+    sig_actualizar_benchmark = pyqtSignal(int)  # Número de episodios
+
+    def __init__(self, entorno, controlador, politica: Type[Politica], episodios, alpha, gamma, param1, param2, n_ejecuciones=10, recompensa_media=0.78, n_episodios_media=100):
+        super().__init__()
+        self.entorno = entorno
+        self.controlador = controlador
+        self.agente = Agente(entorno, controlador)
+        self.politica = politica
+        self.episodios = episodios
+        self.alpha = alpha
+        self.gamma = gamma
+        self.param1 = param1
+        self.param2 = param2
+        self.n_ejecuciones = n_ejecuciones
+        self.recompensa_media = recompensa_media
+        self.n_episodios_media = n_episodios_media
+
+    def run(self):
+        utils.reset_qlearning_callbacks()
+        qlearning.callback_entrenamiento_fin_entrenamiento = self.fin_ejecucion
+        for e in range(self.n_ejecuciones):
+            pol = self.politica(self.agente, self.param1, self.param2)
+            self.agente.set_politica(pol)
+            self.agente.reset()
+            qlearning.entrenar(self.alpha, self.gamma, self.episodios, self.recompensa_media,
+                               self.n_episodios_media, self.agente, self.agente.politica)
+            print('ejecucion',e,'completada')
+
+    def fin_ejecucion(self, **kwargs):
+        bundle = kwargs.get('bundle')
+        n_pasos = bundle.n_episodio
+        print(n_pasos)
+        self.sig_actualizar_benchmark.emit(n_pasos)

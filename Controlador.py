@@ -66,11 +66,15 @@ class Controlador(QObject):
 
         self.vista.show()
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
-        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos())
         sys.exit(self.app.exec_())
 
     def mostrar_metricas(self):
         self.vista_metricas.show()
+
+    def mostrar_benchmark(self):
+        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.agt.entorno, self, self.alpha,
+                                                self.gamma, self.variable_param_1, self.variable_param_2)
+
 
     def get_algoritmos(self):
         algoritmos = []
@@ -122,6 +126,7 @@ class Controlador(QObject):
         self.variable_param_label_1 = self.vista.variableParamLabel1
         self.variable_param_label_2 = self.vista.variableParamLabel2
         self.mostrar_metricas_action = self.vista.mostrarMetricasAction
+        self.mostrar_benchmark_action = self.vista.abrirBenchmarkAction
 
     def __map_comportamiento_ui(self):
         # Mapeamos cada widget con su comportamiento
@@ -146,6 +151,7 @@ class Controlador(QObject):
         self.variable_param_spinbox_1.valueChanged.connect(self.refresh_algoritmo)
         self.variable_param_spinbox_2.valueChanged.connect(self.refresh_algoritmo)
         self.mostrar_metricas_action.triggered.connect(self.mostrar_metricas)
+        self.mostrar_benchmark_action.triggered.connect(self.mostrar_benchmark)
 
     # TODO - en la branch correspondiente, meter esto en el módulo utils que aquí sobra un poco
     def abrir_dialogo_guardado(self):

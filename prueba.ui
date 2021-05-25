@@ -249,6 +249,7 @@
      <string>Métricas</string>
     </property>
     <addaction name="mostrarMetricasAction"/>
+    <addaction name="abrirBenchmarkAction"/>
    </widget>
    <widget class="QMenu" name="menuLog">
     <property name="title">
@@ -279,6 +280,11 @@
   <action name="limpiarLogAction">
    <property name="text">
     <string>Limpiar log</string>
+   </property>
+  </action>
+  <action name="abrirBenchmarkAction">
+   <property name="text">
+    <string>Abrir ventana de Benchmark</string>
    </property>
   </action>
  </widget>
