@@ -248,7 +248,8 @@ class Controlador(QObject):
 
         thread.sig_actualizar_vista.connect(self.actualizarVista)
         thread.sig_print.connect(self.print_log)
-        thread.sig_plot.connect(self.add_plot_data)
+        if isinstance(thread, ThreadEntrenamiento):
+            thread.sig_plot.connect(self.add_plot_data)
         self.cambiar_tiempo_espera()
         return thread
 
