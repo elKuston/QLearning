@@ -19,6 +19,12 @@ n_episodios_media = 100
 
 
 def main():
+    # Sirve para que se muestre mi icono en vez de el de python en la taskbar
+    import ctypes
+    myappid = u'CaponeraRomolo.TFG.QLearning.final'  # arbitrary string
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    # miedito me da lo que pueda hacer esto honestly
+
     c = Controlador()
     c.registrar_algoritmo(SoftMax)
     c.registrar_algoritmo(UpperConfidenceBound)

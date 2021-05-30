@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt5 import QtWidgets, uic
+from PyQt5 import QtWidgets, QtGui, uic
 from PyQt5.Qt import Qt
 from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
 
@@ -20,6 +20,7 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
         super().__init__()
         self.pantalla = pantalla
         uic.loadUi('prueba.ui', self)
+        self.setWindowIcon(QtGui.QIcon('icon-crop.png'))
         self.entorno.configurar(tamano, agente, pantalla)
         self.repaint()
 
@@ -87,8 +88,63 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
 
         self.plot(self.plot_data_x[alg_name], self.plot_data_y[alg_name], alg_name, self.__colores[alg_name])
 
+import random
+import matplotlib
+matplotlib.use('Qt5Agg')
+
+from PyQt5 import QtWidgets
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg , NavigationToolbar2QT
+from matplotlib.figure import Figure
+
 
 class VentanaBenchmark(QtWidgets.QMainWindow):
+
+    # class Lienzo(FigureCanvasQTAgg):
+    #     def __init__(self, parent=None, width=5, height=4, dpi=100):
+    #         fig = Figure(figsize=(width, height), dpi=dpi)
+    #         self.axes = fig.add_subplot(111)
+    #         super(VentanaBenchmark.Lienzo, self).__init__(fig)
+
+    def anadir_medicion(self, medida):
+        print('señal recibida:', medida, 'pasos')
+        #self.barra_progreso.setValue((self.barra_progreso.value()+1)/40*100)
+
+    # def cancelar(self):
+    #     self.benchmark.terminate()
+    #     print('benchmark cancelado')
+    #     self.close()
+    #
+    # def __init__(self, lista_algoritmos, entorno, controlador, alpha, gamma, param1, param2):
+    #     super().__init__()
+    #
+    #
+    #     self.lista_algoritmos = lista_algoritmos
+    #
+    #     self.lienzo = VentanaBenchmark.Lienzo()
+    #     toolbar = NavigationToolbar2QT(self.lienzo, self)
+    #
+    #     layout = QtWidgets.QVBoxLayout()
+    #     layout.addWidget(toolbar)
+    #     layout.addWidget(self.lienzo)
+    #     self.barra_progreso = QtWidgets.QProgressBar()
+    #     layout.addWidget(self.barra_progreso)
+    #     widget = QtWidgets.QWidget()
+    #     widget.setLayout(layout)
+    #     self.setCentralWidget(widget)
+    #
+    #     self.data = dict([])
+    #     for alg in self.lista_algoritmos:
+    #         self.data[alg] = None
+    #     data = [random.random() for _ in range(len(lista_algoritmos))]
+    #     self.lienzo.axes.bar(lista_algoritmos, data)
+    #
+    #     self.lienzo.draw()
+    #     self.show()
+    #
+    #     self.benchmark = ThreadBenchmark(entorno, controlador, EpsilonGreedy,10000,alpha, gamma, param1, param2)
+    #     self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion)
+    #     #self.benchmark.start()
 
     def __init__(self, lista_algoritmos, entorno, controlador, alpha, gamma, param1, param2):
         super().__init__()
@@ -123,11 +179,9 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         for alg in self.lista_algoritmos:
             self.datos[alg] = None
 
-        benchmark = ThreadBenchmark(entorno, controlador, EpsilonGreedy,10000,alpha, gamma, param1, param2)
-        benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion)
-        benchmark.start()
-
         self.show()
+        print("Graph showrd")
 
-    def anadir_medicion(self, medida):
-        print('señal recibida:', medida, 'pasos')
+        benchmark = ThreadBenchmark(entorno, controlador, EpsilonGreedy,10000,alpha, gamma, param1, param2)
+        #benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion)
+        benchmark.start()

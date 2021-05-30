@@ -3,6 +3,7 @@ from typing import Type
 
 from PyQt5.QtCore import QThread, pyqtSignal
 
+import frozenLake
 from Agente import Agente
 import Controlador
 import qlearning
@@ -99,7 +100,6 @@ class ThreadEntrenamiento(QThread):
         self.actualizar_vista()
         self.print_policy()
 
-
 class ThreadEjecucion(QThread):
 
     sig_actualizar_vista = pyqtSignal()
@@ -141,7 +141,7 @@ class ThreadBenchmark(QThread):
 
     def __init__(self, entorno, controlador, politica: Type[Politica], episodios, alpha, gamma, param1, param2, n_ejecuciones=10, recompensa_media=0.78, n_episodios_media=100):
         super().__init__()
-        self.entorno = entorno
+        self.entorno = frozenLake.FrozenLake(entorno.nombre_mapa)
         self.controlador = controlador
         self.agente = Agente(entorno, controlador)
         self.politica = politica
@@ -155,12 +155,15 @@ class ThreadBenchmark(QThread):
         self.n_episodios_media = n_episodios_media
 
     def run(self):
+        print("Iniciando benchmark")
         utils.reset_qlearning_callbacks()
         qlearning.callback_entrenamiento_fin_entrenamiento = self.fin_ejecucion
+        qlearning.callback_enternamiento_fin_episodio = self.ceder_cpu_a_gui
         for e in range(self.n_ejecuciones):
             pol = self.politica(self.agente, self.param1, self.param2)
             self.agente.set_politica(pol)
             self.agente.reset()
+            time.sleep(0)
             qlearning.entrenar(self.alpha, self.gamma, self.episodios, self.recompensa_media,
                                self.n_episodios_media, self.agente, self.agente.politica)
             print('ejecucion',e,'completada')
@@ -168,5 +171,7 @@ class ThreadBenchmark(QThread):
     def fin_ejecucion(self, **kwargs):
         bundle = kwargs.get('bundle')
         n_pasos = bundle.n_episodio
-        print(n_pasos)
-        self.sig_actualizar_benchmark.emit(n_pasos)
+        #self.sig_actualizar_benchmark.emit(n_pasos)
+
+    def ceder_cpu_a_gui(self, **kwargs):
+        time.sleep(0)
