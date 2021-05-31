@@ -138,14 +138,14 @@ class ThreadEjecucion(QThread):
 
 
 class ThreadBenchmark(QThread):
-    sig_actualizar_benchmark = pyqtSignal(int)  # Número de episodios
+    sig_actualizar_benchmark = pyqtSignal(str, int)  # nombre del algoritmo y Número de episodios
 
-    def __init__(self, entorno, controlador, politica: Type[Politica], episodios, alpha, gamma, param1, param2, n_ejecuciones=10, recompensa_media=0.78, n_episodios_media=100):
+    def __init__(self, entorno, controlador, politicas, episodios, alpha, gamma, param1, param2, n_ejecuciones=10, recompensa_media=0.78, n_episodios_media=100):
         super().__init__()
         self.entorno = frozenLake.FrozenLake(entorno.nombre_mapa)
         self.controlador = controlador
         self.agente = Agente(entorno, controlador)
-        self.politica = politica
+        self.politicas = politicas
         self.episodios = episodios
         self.alpha = alpha
         self.gamma = gamma
@@ -159,16 +159,18 @@ class ThreadBenchmark(QThread):
         print("Iniciando benchmark")
         utils.reset_qlearning_callbacks()
         qlearning.callback_entrenamiento_fin_entrenamiento = self.fin_ejecucion
-        for e in range(self.n_ejecuciones):
-            pol = self.politica(self.agente, self.param1, self.param2)
-            self.agente.set_politica(pol)
-            self.agente.reset()
-            qlearning.entrenar(self.alpha, self.gamma, self.episodios, self.recompensa_media,
-                               self.n_episodios_media, self.agente, self.agente.politica)
-            print('ejecucion',e,'completada')
+        for clase_politica in self.politicas:
+            for e in range(self.n_ejecuciones):
+                pol = clase_politica(self.agente, self.param1, self.param2)
+                self.politica_actual = pol.get_nombre()
+                self.agente.set_politica(pol)
+                self.agente.reset()
+                qlearning.entrenar(self.alpha, self.gamma, self.episodios, self.recompensa_media,
+                                   self.n_episodios_media, self.agente, self.agente.politica)
+                print('ejecucion',e,'completada')
 
     def fin_ejecucion(self, **kwargs):
         bundle = kwargs.get('bundle')
         n_pasos = bundle.n_episodio
-        self.sig_actualizar_benchmark.emit(n_pasos)
+        self.sig_actualizar_benchmark.emit(self.politica_actual, n_pasos)
 

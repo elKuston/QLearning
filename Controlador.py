@@ -82,23 +82,29 @@ class Controlador(QObject):
         self.boton_iniciar_benchmark.clicked.connect(self.iniciar_benchmark)
 
     def iniciar_benchmark(self):
+        self.n_ejecuciones_benchmark = 10
         self.mediciones_benchmark = dict([])
         for n in self.get_nombres_algoritmos():
             self.mediciones_benchmark[n] = []
 
-        self.benchmark = ThreadBenchmark(self.agt.entorno, self, EpsilonGreedy, 10000,
+        self.benchmark = ThreadBenchmark(self.agt.entorno, self, self.algoritmos_registrados, 10000,
                                          self.alpha, self.gamma, self.variable_param_1, self.variable_param_2)
         self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion_benchmark)
         self.benchmark.start()
 
         self.descripcion_progreso_benchmark.setText('ejecutando'+'E-greedy TODO'+':0/0')
 
-    def anadir_medicion_benchmark(self, medida):
-        print('señal recibida:', medida, 'pasos')
-        algoritmo_actual = self.get_nombres_algoritmos()[0]
-        self.mediciones_benchmark[algoritmo_actual].append(medida)
-        self.barra_progreso_benchmark.setValue(len(self.mediciones_benchmark[algoritmo_actual])/10*100)
-        self.descripcion_progreso_benchmark.setText('ejecutando'+'E-greedy TODO'+':{}/{}'.format(len(self.mediciones_benchmark[algoritmo_actual]),10))
+    def anadir_medicion_benchmark(self, politica, medida):
+        self.mediciones_benchmark[politica].append(medida)
+        ejecuciones_totales = self.n_ejecuciones_benchmark*len(self.algoritmos_registrados)
+        ejecuciones_completadas = sum([len(self.mediciones_benchmark[p]) for p in self.get_nombres_algoritmos()])
+        print(ejecuciones_completadas, ejecuciones_totales)
+        self.barra_progreso_benchmark.setValue(100.0*ejecuciones_completadas/ejecuciones_totales)
+        self.descripcion_progreso_benchmark.setText(
+            'Ejecutando: {} ({}/{})'.format(politica,
+                                            len(self.mediciones_benchmark[politica]),
+                                            self.n_ejecuciones_benchmark)
+        )
 
 
     def get_algoritmos(self):
