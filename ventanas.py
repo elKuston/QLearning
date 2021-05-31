@@ -149,8 +149,6 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
     def __init__(self, lista_algoritmos, entorno, controlador, alpha, gamma, param1, param2):
         super().__init__()
 
-        # self.show()
-
         self.lista_algoritmos = lista_algoritmos
 
         datos = [random.uniform(0, 10) for _ in range(len(lista_algoritmos))]
@@ -180,8 +178,7 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
             self.datos[alg] = None
 
         self.show()
-        print("Graph showrd")
 
-        benchmark = ThreadBenchmark(entorno, controlador, EpsilonGreedy,10000,alpha, gamma, param1, param2)
-        #benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion)
-        benchmark.start()
+        self.benchmark = ThreadBenchmark(entorno, controlador, EpsilonGreedy,10000,alpha, gamma, param1, param2)
+        self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion)
+        self.benchmark.start()
