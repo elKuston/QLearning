@@ -66,14 +66,39 @@ class Controlador(QObject):
 
         self.vista.show()
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
+        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.agt.entorno, self, self.alpha,
+                                                self.gamma, self.variable_param_1, self.variable_param_2)
         sys.exit(self.app.exec_())
 
     def mostrar_metricas(self):
         self.vista_metricas.show()
 
     def mostrar_benchmark(self):
-        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.agt.entorno, self, self.alpha,
-                                                self.gamma, self.variable_param_1, self.variable_param_2)
+        self.vista_benchmark.show()
+        self.boton_iniciar_benchmark = self.vista_benchmark.startStopButton
+        self.barra_progreso_benchmark = self.vista_benchmark.progressBar
+        self.descripcion_progreso_benchmark = self.vista_benchmark.progressLabel
+
+        self.boton_iniciar_benchmark.clicked.connect(self.iniciar_benchmark)
+
+    def iniciar_benchmark(self):
+        self.mediciones_benchmark = dict([])
+        for n in self.get_nombres_algoritmos():
+            self.mediciones_benchmark[n] = []
+
+        self.benchmark = ThreadBenchmark(self.agt.entorno, self, EpsilonGreedy, 10000,
+                                         self.alpha, self.gamma, self.variable_param_1, self.variable_param_2)
+        self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion_benchmark)
+        self.benchmark.start()
+
+        self.descripcion_progreso_benchmark.setText('ejecutando'+'E-greedy TODO'+':0/0')
+
+    def anadir_medicion_benchmark(self, medida):
+        print('señal recibida:', medida, 'pasos')
+        algoritmo_actual = self.get_nombres_algoritmos()[0]
+        self.mediciones_benchmark[algoritmo_actual].append(medida)
+        self.barra_progreso_benchmark.setValue(len(self.mediciones_benchmark[algoritmo_actual])/10*100)
+        self.descripcion_progreso_benchmark.setText('ejecutando'+'E-greedy TODO'+':{}/{}'.format(len(self.mediciones_benchmark[algoritmo_actual]),10))
 
 
     def get_algoritmos(self):
