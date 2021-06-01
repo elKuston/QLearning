@@ -58,6 +58,9 @@ class Controlador(QObject):
         self.variable_param_2 = 0.99  # POR DEFECTO es el epsilon_decay
         self.algoritmos = []
 
+        # benchmark
+        self.n_ejecuciones_benchmark = 10
+
     def start(self):
         """Una vez registrados los algoritmos, este método termina de configurar los componentes e inicia la vista"""
         self.algoritmos = self.get_algoritmos()  # Almacena las INSTANCIAS de los algoritmos
@@ -66,7 +69,7 @@ class Controlador(QObject):
 
         self.vista.show()
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
-        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.agt.entorno, self, self.alpha,
+        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(),self.n_ejecuciones_benchmark, self.agt.entorno, self, self.alpha,
                                                 self.gamma, self.variable_param_1, self.variable_param_2)
         sys.exit(self.app.exec_())
 
@@ -80,9 +83,9 @@ class Controlador(QObject):
         self.descripcion_progreso_benchmark = self.vista_benchmark.progressLabel
 
         self.boton_iniciar_benchmark.clicked.connect(self.iniciar_benchmark)
+        self.vista_benchmark.init_grafico()
 
     def iniciar_benchmark(self):
-        self.n_ejecuciones_benchmark = 10
         self.mediciones_benchmark = dict([])
         for n in self.get_nombres_algoritmos():
             self.mediciones_benchmark[n] = []
@@ -92,20 +95,22 @@ class Controlador(QObject):
         self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion_benchmark)
         self.benchmark.start()
 
-        self.descripcion_progreso_benchmark.setText('ejecutando'+'E-greedy TODO'+':0/0')
+        self.descripcion_progreso_benchmark.setText('Iniciando benchmark...')
 
     def anadir_medicion_benchmark(self, politica, medida):
         self.mediciones_benchmark[politica].append(medida)
         ejecuciones_totales = self.n_ejecuciones_benchmark*len(self.algoritmos_registrados)
         ejecuciones_completadas = sum([len(self.mediciones_benchmark[p]) for p in self.get_nombres_algoritmos()])
-        print(ejecuciones_completadas, ejecuciones_totales)
-        self.barra_progreso_benchmark.setValue(100.0*ejecuciones_completadas/ejecuciones_totales)
+        progreso = 100.0*ejecuciones_completadas/ejecuciones_totales
+        self.barra_progreso_benchmark.setValue(progreso)
         self.descripcion_progreso_benchmark.setText(
             'Ejecutando: {} ({}/{})'.format(politica,
                                             len(self.mediciones_benchmark[politica]),
                                             self.n_ejecuciones_benchmark)
         )
-
+        if progreso == 100:
+            self.descripcion_progreso_benchmark.setText('Benchmark finalizado')
+        self.vista_benchmark.actualizar_grafico(politica, medida)
 
     def get_algoritmos(self):
         algoritmos = []

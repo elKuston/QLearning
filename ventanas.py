@@ -1,3 +1,4 @@
+import math
 import random
 
 import numpy as np
@@ -90,7 +91,7 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
 
 
 class VentanaBenchmark(QtWidgets.QMainWindow):
-    def __init__(self, lista_algoritmos, entorno, controlador, alpha, gamma, param1, param2):
+    def __init__(self, lista_algoritmos, n_ejecuciones, entorno, controlador, alpha, gamma, param1, param2):
         super().__init__()
         uic.loadUi('ventana_benchmark.ui', self)
 
@@ -115,21 +116,42 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         eje_x.append(tupla_algoritmos)
         eje_y = QValueAxis()
 
-        grafico = QChart()
-        grafico.addSeries(series)
-        grafico.setAnimationOptions(QChart.SeriesAnimations)
-        grafico.addAxis(eje_x, Qt.AlignBottom)
-        grafico.addAxis(eje_y, Qt.AlignLeft)
+        self.grafico = QChart()
+        self.grafico.addSeries(series)
+        self.grafico.setAnimationOptions(QChart.NoAnimation)
+        self.grafico.addAxis(eje_x, Qt.AlignBottom)
+        self.grafico.addAxis(eje_y, Qt.AlignLeft)  # TODO no se muestra
 
-        grafico.legend().setVisible(True)
+        self.grafico.legend().setVisible(True)
         #
         # chartView = QChartView(grafico)
         # self.setCentralWidget(chartView)
         #
-        # self.datos = dict([])
-        # for alg in self.lista_algoritmos:
-        #     self.datos[alg] = None
+        self.datos = dict([])
+        for alg in self.lista_algoritmos:
+            self.datos[alg] = []
 
+    def init_grafico(self):
+        self.vista_grafico.setChart(self.grafico)
 
+    def actualizar_grafico(self, algoritmo, nuevo_dato):
+        """Añade a la barra de algoritmo el nuevo dato"""
+        self.datos[algoritmo].append(nuevo_dato)
+        self.grafico.removeAllSeries()
+        #medias = [np.mean(datos) for datos in self.datos.values()]  # TODO Contar los nan como 0
+        medias = []
+        for datos in self.datos.values():
+            if len(datos)==0:
+                media = 0
+            else:
+                media = np.mean(datos)
+            medias.append(media)
+        print(medias)
+        barset = QBarSet('Pasos hasta fin del entrenamiento')
+        barset.append(medias)
+        series = QBarSeries()
+        series.append(barset)
+        self.grafico.addSeries(series)
+        self.init_grafico()
 
 
