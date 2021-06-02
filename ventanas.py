@@ -21,8 +21,8 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
     def __init__(self, tamano, agente, pantalla):
         super().__init__()
         self.pantalla = pantalla
-        uic.loadUi('prueba.ui', self)
         self.setWindowIcon(QtGui.QIcon('icon-crop.png'))
+        uic.loadUi('ventana_principal.ui', self)
         self.entorno.configurar(tamano, agente, pantalla)
         self.repaint()
 
