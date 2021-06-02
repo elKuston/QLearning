@@ -60,6 +60,8 @@ class Controlador(QObject):
 
         # benchmark
         self.n_ejecuciones_benchmark = 10
+        self.benchmark_running = False
+        self.benchmark = None
 
     def start(self):
         """Una vez registrados los algoritmos, este método termina de configurar los componentes e inicia la vista"""
@@ -77,25 +79,48 @@ class Controlador(QObject):
         self.vista_metricas.show()
 
     def mostrar_benchmark(self):
+        self.deshabilitar_todo(True)
         self.vista_benchmark.show()
         self.boton_iniciar_benchmark = self.vista_benchmark.startStopButton
         self.barra_progreso_benchmark = self.vista_benchmark.progressBar
         self.descripcion_progreso_benchmark = self.vista_benchmark.progressLabel
 
-        self.boton_iniciar_benchmark.clicked.connect(self.iniciar_benchmark)
+        self.boton_iniciar_benchmark.clicked.connect(self.toggle_benchmark)
         self.vista_benchmark.init_grafico()
 
-    def iniciar_benchmark(self):
-        self.mediciones_benchmark = dict([])
-        for n in self.get_nombres_algoritmos():
-            self.mediciones_benchmark[n] = []
+    def cerrar_benchmark(self):
+        if self.benchmark is not None:
+            self.benchmark.terminate()
 
-        self.benchmark = ThreadBenchmark(self.agt.entorno, self, self.algoritmos_registrados, 10000,
-                                         self.alpha, self.gamma, self.variable_param_1, self.variable_param_2)
-        self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion_benchmark)
-        self.benchmark.start()
+    def toggle_benchmark(self):
+        if self.benchmark_running:
+            self.benchmark_running = False
+            self.boton_iniciar_benchmark.setText('Iniciar')
+            self.descripcion_progreso_benchmark.setText('Benchmark detenido')
+            self.benchmark.terminate()
+        else:
+            self.benchmark_running = True
+            self.boton_iniciar_benchmark.setText('Detener')
+            self.vista_benchmark.limpiar_grafico()
+            self.mediciones_benchmark = dict([])
+            for n in self.get_nombres_algoritmos():
+                self.mediciones_benchmark[n] = []
 
-        self.descripcion_progreso_benchmark.setText('Iniciando benchmark...')
+            self.benchmark = ThreadBenchmark(self.agt.entorno, self, self.algoritmos_registrados, 10000,
+                                             self.alpha, self.gamma, self.variable_param_1, self.variable_param_2)
+            self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion_benchmark)
+            self.benchmark.start()
+
+            self.descripcion_progreso_benchmark.setText('Iniciando benchmark...')
+
+    def deshabilitar_todo(self, deshabilitado):
+        self.entrenar_button.setDisabled(deshabilitado)
+        self.reset_button.setDisabled(deshabilitado)
+        self.play_pause_button.setDisabled(deshabilitado)
+        self.resolver_button.setDisabled(deshabilitado)
+        self.dropdown_mapa.setDisabled(deshabilitado)
+        self.dropdown_algoritmo.setDisabled(deshabilitado)
+        self.habilitar_hiperparams(not deshabilitado)
 
     def anadir_medicion_benchmark(self, politica, medida):
         self.mediciones_benchmark[politica].append(medida)
@@ -245,6 +270,7 @@ class Controlador(QObject):
             text = 'Play'
         self.play_pause_button.setText(text)
 
+
     def cambiar_tiempo_espera(self):
         self.sig_cambiar_tiempo_espera.emit(
             self.espera_slider.value() / 1000
@@ -266,6 +292,7 @@ class Controlador(QObject):
         self.agt.reset()
         self.generar_thread_actual()
         self.habilitar_hiperparams()
+        self.mostrar_benchmark_action.setDisabled(False)
         self.hiperparams_default()
         self.actualizarVista()
 
@@ -321,6 +348,7 @@ class Controlador(QObject):
         if not self.agt.playing:
             self.togglePlay()
         self.habilitar_hiperparams(False)
+        self.mostrar_benchmark_action.setDisabled(True)
 
     def get_thread_inactivo(self):
         thread = None

@@ -126,9 +126,6 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
 
         self.grafico.legend().setVisible(True)
         self.grafico.legend().setAlignment(Qt.AlignBottom)
-        self.datos = dict([])
-        for alg in self.lista_algoritmos:
-            self.datos[alg] = []
 
     def init_grafico(self):
         self.vista_grafico.setChart(self.grafico)
@@ -155,4 +152,17 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         self.grafico.addSeries(series)
         self.init_grafico()
 
+    def limpiar_grafico(self):
+        self.grafico.removeAllSeries()
+        self.init_grafico()
+        self.__init_datos()
 
+    def __init_datos(self):
+        self.datos = dict([])
+        for alg in self.lista_algoritmos:
+            self.datos[alg] = []
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        self.controlador.deshabilitar_todo(False)  # Antes de cerrar la ventana habilitamos los botones de ventana princ
+        self.controlador.cerrar_benchmark()
+        event.accept()
