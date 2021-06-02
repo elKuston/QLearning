@@ -18,7 +18,8 @@ class Politica(ABC):
         :param valor: El valor con el que se inicializa la matriz
         """
         valor = kwargs.get('valor', 0)
-        self.agente.Q = np.full([self.agente.entorno.observation_space.n, self.agente.entorno.action_space.n], valor, dtype='float64')
+        self.agente.Q = np.full([self.agente.entorno.observation_space.n, self.agente.entorno.action_space.n], valor,
+                                dtype=np.double)
 
     def actualizar_q(self, accion, estado_siguiente, recompensa, alpha, gamma):
         """
@@ -176,7 +177,7 @@ class SoftMax(Politica):
 
     @classmethod
     def get_parametros_default(cls):
-        return [0.5, 0.99]
+        return [0.5, 0.99999]
 
 
 class UpperConfidenceBound(Politica):

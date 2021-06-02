@@ -198,6 +198,7 @@ class VentanaAjustesBenchmark(QWidget):
                 self.spinboxes[nombre][p] = QDoubleSpinBox()
                 self.spinboxes[nombre][p].setRange(0, 1)
                 self.spinboxes[nombre][p].setSingleStep(0.1)
+                self.spinboxes[nombre][p].setDecimals(5)
                 self.spinboxes[nombre][p].setValue(ajustes[nombre][p])
                 form.addRow(p, self.spinboxes[nombre][p])
 
@@ -209,6 +210,7 @@ class VentanaAjustesBenchmark(QWidget):
                 self.spinboxes[nombre][p].setMinimum(rangos[i][0])
                 self.spinboxes[nombre][p].setMaximum(rangos[i][1])
                 self.spinboxes[nombre][p].setSingleStep(0.1)
+                self.spinboxes[nombre][p].setDecimals(5)
                 self.spinboxes[nombre][p].setValue(ajustes[nombre][p])
                 form.addRow(nombres_param[i], self.spinboxes[nombre][p])
 
