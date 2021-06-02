@@ -4,6 +4,10 @@ import utils
 
 FORMATO_FICHERO = '.pol'
 
+NOMBRE_APP = 'QLearning'
+NOMBRE_MODULO_SETTINGS = 'Benchmark'
+AJUSTES_PARAM_N_EJECUCIONES = 'numero ejecuciones'
+
 
 def guardar_fichero(nombre_fichero, contenido):
     fichero = open(nombre_fichero, 'w')
@@ -61,7 +65,7 @@ def get_nombre_ajuste(algoritmo, parametro):
 
 def formatear_ajustes_benchmark(ajustes, algoritmos, controlador):
     ajustes_dict = dict([])
-    ajustes_dict['numero ejecuciones'] = int(ajustes.value('numero ejecuciones', 10))
+    ajustes_dict[utils.AJUSTES_PARAM_N_EJECUCIONES] = int(ajustes.value(utils.AJUSTES_PARAM_N_EJECUCIONES, 10))
     for algo in algoritmos:
         ajustes_dict[algo.get_nombre()] = dict([])
         ajustes_dict[algo.get_nombre()]['alpha'] = float(ajustes.value(utils.get_nombre_ajuste(algo, 'alpha'),
@@ -77,7 +81,7 @@ def formatear_ajustes_benchmark(ajustes, algoritmos, controlador):
 
 
 def guardar_ajustes_benchmark(ajustes, ajustes_dict, algoritmos):
-    ajustes.setValue('numero ejecuciones', ajustes_dict['numero ejecuciones'])
+    ajustes.setValue(utils.AJUSTES_PARAM_N_EJECUCIONES, ajustes_dict[utils.AJUSTES_PARAM_N_EJECUCIONES])
     for alg in algoritmos:
         nombre = alg.get_nombre()
         for param in ['alpha', 'gamma', 'param1', 'param2']:

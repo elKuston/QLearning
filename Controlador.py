@@ -18,8 +18,6 @@ LOG_BUFFER_DEFAULT_SIZE = 5
 ENTRENANDO = 0
 RESOLVIENDO = 1
 
-NOMBRE_APP = 'QLearning'
-NOMBRE_MODULO_SETTINGS = 'Benchmark'
 
 episodios = 100000000000000  # Las "rondas" de entrenamiento
 recompensa_media = 0.78  # Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
@@ -61,12 +59,11 @@ class Controlador(QObject):
         self.variable_param_2 = 0.99  # POR DEFECTO es el epsilon_decay
         self.algoritmos = []
 
-        # benchmark
-        self.n_ejecuciones_benchmark = 10
-        self.benchmark_running = False
-        self.benchmark = None
-        self.ajustes_benchmark = QSettings(NOMBRE_APP, NOMBRE_MODULO_SETTINGS)
 
+    def cargar_ajustes_benchmark(self):
+        self.ajustes_benchmark = QSettings(utils.NOMBRE_APP, utils.NOMBRE_MODULO_SETTINGS)
+        self.ajustes_benchmark_dict = utils.formatear_ajustes_benchmark(self.ajustes_benchmark, self.get_algoritmos(), self)
+        print('ajustes cargados', self.ajustes_benchmark_dict)
 
     def start(self):
         """Una vez registrados los algoritmos, este método termina de configurar los componentes e inicia la vista"""
@@ -74,9 +71,15 @@ class Controlador(QObject):
 
         self.agt.set_politica(self.algoritmos[0])
 
+        # benchmark
+        self.benchmark_running = False
+        self.benchmark = None
+        self.ajustes_benchmark_dict = dict([])
+        self.cargar_ajustes_benchmark()
+
         self.vista.show()
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
-        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(),self.n_ejecuciones_benchmark, self.agt.entorno, self, self.alpha,
+        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.ajustes_benchmark_dict, self.agt.entorno, self, self.alpha,
                                                 self.gamma, self.variable_param_1, self.variable_param_2)
         sys.exit(self.app.exec_())
 
@@ -102,6 +105,8 @@ class Controlador(QObject):
         self.vista_ajustes_bechmark.show()
 
     def guardar_ajustes_benchmark(self, ajustes):
+        self.ajustes_benchmark_dict = ajustes  # Actualizamos los ajustes del controlador
+        self.vista_benchmark.formatear_titulo_gafico(ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES])
         utils.guardar_ajustes_benchmark(self.ajustes_benchmark, ajustes, self.get_algoritmos())
 
     def cerrar_benchmark(self):
@@ -123,7 +128,7 @@ class Controlador(QObject):
                 self.mediciones_benchmark[n] = []
 
             self.benchmark = ThreadBenchmark(self.agt.entorno, self, self.algoritmos_registrados, 10000,
-                                             self.alpha, self.gamma, self.variable_param_1, self.variable_param_2)
+                                             self.ajustes_benchmark_dict)
             self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion_benchmark)
             self.benchmark.start()
 
@@ -140,14 +145,14 @@ class Controlador(QObject):
 
     def anadir_medicion_benchmark(self, politica, medida):
         self.mediciones_benchmark[politica].append(medida)
-        ejecuciones_totales = self.n_ejecuciones_benchmark*len(self.algoritmos_registrados)
+        ejecuciones_totales = self.ajustes_benchmark_dict[utils.AJUSTES_PARAM_N_EJECUCIONES]*len(self.algoritmos_registrados)
         ejecuciones_completadas = sum([len(self.mediciones_benchmark[p]) for p in self.get_nombres_algoritmos()])
         progreso = 100.0*ejecuciones_completadas/ejecuciones_totales
         self.barra_progreso_benchmark.setValue(progreso)
         self.descripcion_progreso_benchmark.setText(
             'Ejecutando: {} ({}/{})'.format(politica,
                                             len(self.mediciones_benchmark[politica]),
-                                            self.n_ejecuciones_benchmark)
+                                            self.ajustes_benchmark_dict[utils.AJUSTES_PARAM_N_EJECUCIONES])
         )
         if progreso == 100:
             self.descripcion_progreso_benchmark.setText('Benchmark finalizado')

@@ -49,24 +49,28 @@ class Politica(ABC):
         """
         Selecciona una acción
         """
+    @classmethod
     @abstractmethod
-    def get_nombre(self):
+    def get_nombre(cls):
         """Devuelve el nombre del algoritmo que será usado para mostrar en el desplegable"""
 
+    @classmethod
     @abstractmethod
-    def get_nombres_parametros(self):
+    def get_nombres_parametros(cls):
         """Devuelve en una lista los nombres de los hiperparámetros que se usarán para
         colocar en los labels correspondientes"""
 
     def __str__(self):
         return self.get_nombre()+" "+str(list(zip(self.get_nombres_parametros(), [self.parametro, self.variacion_parametro])))
 
+    @classmethod
     @abstractmethod
-    def get_parametros_default(self):
+    def get_parametros_default(cls):
         """Devuelve el array de los valores por defecto para la política
         (en el mismo orden que get_nombres_parametros)"""
 
-    def get_rango_parametros(self):
+    @classmethod
+    def get_rango_parametros(cls):
         """Lista de tuplas que contienen el minimo y maximo valor de los parametros. Por defecto [0,1]"""
         return [(0, 1), (0, 1)]
 
@@ -101,13 +105,16 @@ class EpsilonGreedy(Politica):
             accion = np.argmax(self.agente.Q[self.agente.estado]) # argmax nos devuelve el índice del mayor elemento del array
         return accion
 
-    def get_nombre(self):
+    @classmethod
+    def get_nombre(cls):
         return "Épsilon-greedy"
 
-    def get_nombres_parametros(self):
+    @classmethod
+    def get_nombres_parametros(cls):
         return ["Épsilon", "Decaimiento épsilon"]  # TODO texto hardcodeado
 
-    def get_parametros_default(self):
+    @classmethod
+    def get_parametros_default(cls):
         return [1, 0.99]
 
 
@@ -159,13 +166,16 @@ class SoftMax(Politica):
         softmax = probabilidades/suma
         return softmax
 
-    def get_nombre(self):
+    @classmethod
+    def get_nombre(cls):
         return "SoftMax"
 
-    def get_nombres_parametros(self):
+    @classmethod
+    def get_nombres_parametros(cls):
         return ["Temperatura", "Decaimiento temperatura"]  # TODO texto hardcodeado
 
-    def get_parametros_default(self):
+    @classmethod
+    def get_parametros_default(cls):
         return [0.5, 0.99]
 
 
@@ -206,16 +216,19 @@ class UpperConfidenceBound(Politica):
     def variar_parametro(self):
         pass
 
-    def get_nombre(self):
+    @classmethod
+    def get_nombre(cls):
         return "Upper Confidence Bound (UCB)"
 
-    def get_nombres_parametros(self):
+    @classmethod
+    def get_nombres_parametros(cls):
         return ["H", "T"]  # TODO texto hardcodeado
 
     def get_parametros_default(self):
         return [self.agente.entorno.observation_space.n, self.agente.entorno.observation_space.n*10000]  # Todo ese 10k me lo he inventado, hay que relacionarlo co el numero total de pasos
 
-    def get_rango_parametros(self):
+    @classmethod
+    def get_rango_parametros(cls):
         """Lista de tuplas que contienen el minimo y maximo valor de los parametros. Por defecto [0,1]"""
         return [(-np.inf, np.inf), (-np.inf, np.inf)]
 

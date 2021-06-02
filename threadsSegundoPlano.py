@@ -140,18 +140,16 @@ class ThreadEjecucion(QThread):
 class ThreadBenchmark(QThread):
     sig_actualizar_benchmark = pyqtSignal(str, int)  # nombre del algoritmo y Número de episodios
 
-    def __init__(self, entorno, controlador, politicas, episodios, alpha, gamma, param1, param2, n_ejecuciones=10, recompensa_media=0.78, n_episodios_media=100):
+    def __init__(self, entorno, controlador, politicas, episodios, ajustes_dict, recompensa_media=0.78, n_episodios_media=100):
         super().__init__()
         self.entorno = frozenLake.FrozenLake(entorno.nombre_mapa)
         self.controlador = controlador
         self.agente = Agente(entorno, controlador)
         self.politicas = politicas
         self.episodios = episodios
-        self.alpha = alpha
-        self.gamma = gamma
-        self.param1 = param1
-        self.param2 = param2
-        self.n_ejecuciones = n_ejecuciones
+        self.ajustes = ajustes_dict
+        print(ajustes_dict)
+        self.n_ejecuciones = ajustes_dict[utils.AJUSTES_PARAM_N_EJECUCIONES]
         self.recompensa_media = recompensa_media
         self.n_episodios_media = n_episodios_media
 
@@ -160,12 +158,18 @@ class ThreadBenchmark(QThread):
         utils.reset_qlearning_callbacks()
         qlearning.callback_entrenamiento_fin_entrenamiento = self.fin_ejecucion
         for clase_politica in self.politicas:
+            nombre = clase_politica.get_nombre()
+            alpha = self.ajustes[nombre]['alpha']
+            gamma = self.ajustes[nombre]['gamma']
+            p1 = self.ajustes[nombre]['param1']
+            p2 = self.ajustes[nombre]['param2']
+
             for e in range(self.n_ejecuciones):
-                pol = clase_politica(self.agente, self.param1, self.param2)
+                pol = clase_politica(self.agente, p1, p2)
                 self.politica_actual = pol.get_nombre()
                 self.agente.set_politica(pol)
                 self.agente.reset()
-                qlearning.entrenar(self.alpha, self.gamma, self.episodios, self.recompensa_media,
+                qlearning.entrenar(alpha, gamma, self.episodios, self.recompensa_media,
                                    self.n_episodios_media, self.agente, self.agente.politica)
                 print('ejecucion',e,'completada')
 

@@ -92,7 +92,7 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
 
 
 class VentanaBenchmark(QtWidgets.QMainWindow):
-    def __init__(self, lista_algoritmos, n_ejecuciones, entorno, controlador, alpha, gamma, param1, param2):
+    def __init__(self, lista_algoritmos, ajustes, entorno, controlador, alpha, gamma, param1, param2):
         super().__init__()
         uic.loadUi('ventana_benchmark.ui', self)
 
@@ -103,12 +103,6 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         self.gamma = gamma
         self.param1 = param1
         self.param2 = param2
-
-        datos = [random.uniform(0, 10) for _ in range(len(lista_algoritmos))]
-        barset = QBarSet('Pasos hasta fin del entrenamiento')
-        barset.append(datos)
-        series = QBarSeries()
-        series.append(barset)
 
         tupla_algoritmos = tuple(lista_algoritmos)
         eje_x = QBarCategoryAxis()
@@ -121,10 +115,11 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         self.grafico.setAnimationOptions(QChart.NoAnimation)
         self.grafico.addAxis(eje_x, Qt.AlignBottom)
         self.grafico.addAxis(self.eje_y, Qt.AlignLeft)  # TODO no se muestra
-        self.grafico.setTitle("Pasos hasta el fin del entrenamiento (10 ejecuciones)")
+        n_ejecuciones = ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES]
+        self.formatear_titulo_gafico(n_ejecuciones)
 
         self.grafico.legend().setVisible(True)
-        self.grafico.legend().setAlignment(Qt.AlignBottom)
+        self.grafico.legend().setAlignment(Qt.AlignTop)
 
     def init_grafico(self):
         self.vista_grafico.setChart(self.grafico)
@@ -166,6 +161,9 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         self.controlador.cerrar_benchmark()
         event.accept()
 
+    def formatear_titulo_gafico(self, n_ejecuciones):
+        self.grafico.setTitle("Pasos hasta el fin del entrenamiento ("+str(n_ejecuciones)+" ejecuciones)")
+
 
 class VentanaAjustesBenchmark(QWidget):
     def __init__(self, controlador, ajustes, instancias_algoritmos):
@@ -180,7 +178,7 @@ class VentanaAjustesBenchmark(QWidget):
         layout_n_ejec = QHBoxLayout()
         layout_n_ejec.addWidget(QLabel('Número de ejecuciones por algoritmo:'))
         self.spinbox_n_ejec = QSpinBox()
-        self.spinbox_n_ejec.setValue(ajustes['numero ejecuciones'])
+        self.spinbox_n_ejec.setValue(ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES])
         layout_n_ejec.addWidget(self.spinbox_n_ejec)
         layout_principal.addLayout(layout_n_ejec)
 
@@ -216,12 +214,15 @@ class VentanaAjustesBenchmark(QWidget):
 
             gb.setLayout(form)
             layout_principal.addWidget(gb)
+            self.boton_restablecer = QPushButton('Restablecer')
+            self.boton_restablecer.clicked.connect(self.restablecer)
+            layout_principal.addWidget(self.boton_restablecer)
 
         self.setLayout(layout_principal)
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         ajustes = dict([])
-        ajustes['numero ejecuciones'] = self.spinbox_n_ejec.value()
+        ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES] = self.spinbox_n_ejec.value()
         for alg in self.instancias_algoritmos:
             nombre = alg.get_nombre()
             ajustes[nombre] = dict([])
@@ -230,3 +231,13 @@ class VentanaAjustesBenchmark(QWidget):
 
         self.controlador.guardar_ajustes_benchmark(ajustes)
         event.accept()
+
+    def restablecer(self):
+        self.spinbox_n_ejec.setValue(10)
+        for alg in self.instancias_algoritmos:
+            nombre = alg.get_nombre()
+            self.spinboxes[nombre]['alpha'].setValue(0.1)
+            self.spinboxes[nombre]['gamma'].setValue(1)
+            defaults = alg.get_parametros_default()
+            self.spinboxes[nombre]['param1'].setValue(defaults[0])
+            self.spinboxes[nombre]['param2'].setValue(defaults[1])
