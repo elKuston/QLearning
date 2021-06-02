@@ -114,19 +114,18 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         tupla_algoritmos = tuple(lista_algoritmos)
         eje_x = QBarCategoryAxis()
         eje_x.append(tupla_algoritmos)
-        eje_y = QValueAxis()
+        self.eje_y = QValueAxis()
+        self.eje_y.setRange(0, 100)
 
         self.grafico = QChart()
-        self.grafico.addSeries(series)
+        #self.grafico.addSeries(series)
         self.grafico.setAnimationOptions(QChart.NoAnimation)
         self.grafico.addAxis(eje_x, Qt.AlignBottom)
-        self.grafico.addAxis(eje_y, Qt.AlignLeft)  # TODO no se muestra
+        self.grafico.addAxis(self.eje_y, Qt.AlignLeft)  # TODO no se muestra
+        self.grafico.setTitle("Pasos hasta el fin del entrenamiento (10 ejecuciones)")
 
         self.grafico.legend().setVisible(True)
-        #
-        # chartView = QChartView(grafico)
-        # self.setCentralWidget(chartView)
-        #
+        self.grafico.legend().setAlignment(Qt.AlignBottom)
         self.datos = dict([])
         for alg in self.lista_algoritmos:
             self.datos[alg] = []
@@ -138,19 +137,21 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         """Añade a la barra de algoritmo el nuevo dato"""
         self.datos[algoritmo].append(nuevo_dato)
         self.grafico.removeAllSeries()
-        #medias = [np.mean(datos) for datos in self.datos.values()]  # TODO Contar los nan como 0
-        medias = []
-        for datos in self.datos.values():
-            if len(datos)==0:
-                media = 0
-            else:
-                media = np.mean(datos)
-            medias.append(media)
-        print(medias)
-        barset = QBarSet('Pasos hasta fin del entrenamiento')
-        barset.append(medias)
+        medias = [np.mean(datos) if len(datos) > 0 else 0 for datos in self.datos.values()]
+        mejores = [np.min(datos) if len(datos) > 0 else 0 for datos in self.datos.values()]
+        peores = [np.max(datos) if len(datos) > 0 else 0 for datos in self.datos.values()]
+        self.eje_y.setRange(0, max(max(medias), max(peores)))
+
+        barset_media = QBarSet('Media')
+        barset_media.append(medias)
+        barset_mejor = QBarSet('Mejor')
+        barset_mejor.append(mejores)
+        barset_peor = QBarSet('Peor')
+        barset_peor.append(peores)
         series = QBarSeries()
-        series.append(barset)
+        series.append(barset_media)
+        series.append(barset_mejor)
+        series.append(barset_peor)
         self.grafico.addSeries(series)
         self.init_grafico()
 
