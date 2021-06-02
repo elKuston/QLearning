@@ -95,20 +95,14 @@ class Controlador(QObject):
 
         self.vista_benchmark.actionConfiguracion.triggered.connect(self.mostrar_ajustes_benchmark)
 
-    def __formatear_ajustes_benchmark(self):
-        ajustes = dict([])
-        for algo in self.get_algoritmos():
-            ajustes[algo.get_nombre()] = dict([])
-            #ajustes[algo.get_nombre()]['alpha'] =
-            # TODO seguir por aqui: mapear cada parametro de las settings con el correspondiente en este diccionario. luego cambiar la ventana para que coja los datos de aqui. por ultimo hacer que los guarde (la ventana devolvera un diccionari con la misma forma y habra que guardarlo en las settings)
 
     def mostrar_ajustes_benchmark(self):
-        ajustes = self.__formatear_ajustes_benchmark()
+        ajustes = utils.formatear_ajustes_benchmark(self.ajustes_benchmark, self.get_algoritmos(), self)
         self.vista_ajustes_bechmark = VentanaAjustesBenchmark(self, ajustes, self.get_algoritmos())
         self.vista_ajustes_bechmark.show()
 
-    def guardar_ajustes_benchmark(self):
-        print('placeholder: guardando ajustes')
+    def guardar_ajustes_benchmark(self, ajustes):
+        utils.guardar_ajustes_benchmark(self.ajustes_benchmark, ajustes, self.get_algoritmos())
 
     def cerrar_benchmark(self):
         if self.benchmark is not None:

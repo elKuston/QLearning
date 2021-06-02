@@ -170,31 +170,63 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
 class VentanaAjustesBenchmark(QWidget):
     def __init__(self, controlador, ajustes, instancias_algoritmos):
         super().__init__()
+        print(ajustes)
         self.controlador = controlador
+        self.instancias_algoritmos = instancias_algoritmos
+
         self.setWindowTitle("Configuración banco de pruebas")
         layout_principal = QVBoxLayout()
         # Layout para el numero de ejecuciones
         layout_n_ejec = QHBoxLayout()
         layout_n_ejec.addWidget(QLabel('Número de ejecuciones por algoritmo:'))
-        spinbox_n_ejec = QSpinBox()
-        spinbox_n_ejec.setValue(10)
-        layout_n_ejec.addWidget(spinbox_n_ejec)
+        self.spinbox_n_ejec = QSpinBox()
+        self.spinbox_n_ejec.setValue(ajustes['numero ejecuciones'])
+        layout_n_ejec.addWidget(self.spinbox_n_ejec)
         layout_principal.addLayout(layout_n_ejec)
 
         # Layout de los campos de cada algoritmo
+        self.alpha_spinboxes = dict([])
+        self.gamma_spinboxes = dict([])
+        self.param1_spinboxes = dict([])
+        self.param2_spinboxes = dict([])
+        self.spinboxes = dict([])
         for alg in instancias_algoritmos:
-            gb = QGroupBox(alg.get_nombre())
+            nombre = alg.get_nombre()
+            gb = QGroupBox(nombre)
             form = QFormLayout()
-            form.addRow('alpha', QDoubleSpinBox())
-            form.addRow('gamma', QDoubleSpinBox())
+
+            self.spinboxes[nombre] = dict([])
+            for p in ['alpha', 'gamma']:
+                self.spinboxes[nombre][p] = QDoubleSpinBox()
+                self.spinboxes[nombre][p].setRange(0, 1)
+                self.spinboxes[nombre][p].setSingleStep(0.1)
+                self.spinboxes[nombre][p].setValue(ajustes[nombre][p])
+                form.addRow(p, self.spinboxes[nombre][p])
+
+            rangos = alg.get_rango_parametros()
             nombres_param = alg.get_nombres_parametros()
-            form.addRow(nombres_param[0], QDoubleSpinBox())
-            form.addRow(nombres_param[1], QDoubleSpinBox())
+            for i in range(2):
+                p = 'param'+str(i+1)
+                self.spinboxes[nombre][p] = QDoubleSpinBox()
+                self.spinboxes[nombre][p].setMinimum(rangos[i][0])
+                self.spinboxes[nombre][p].setMaximum(rangos[i][1])
+                self.spinboxes[nombre][p].setSingleStep(0.1)
+                self.spinboxes[nombre][p].setValue(ajustes[nombre][p])
+                form.addRow(nombres_param[i], self.spinboxes[nombre][p])
+
             gb.setLayout(form)
             layout_principal.addWidget(gb)
 
         self.setLayout(layout_principal)
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
-        self.controlador.guardar_ajustes_benchmark()
+        ajustes = dict([])
+        ajustes['numero ejecuciones'] = self.spinbox_n_ejec.value()
+        for alg in self.instancias_algoritmos:
+            nombre = alg.get_nombre()
+            ajustes[nombre] = dict([])
+            for parametro in ['alpha', 'gamma', 'param1', 'param2']:
+                ajustes[nombre][parametro] = self.spinboxes[nombre][parametro].value()
+
+        self.controlador.guardar_ajustes_benchmark(ajustes)
         event.accept()
