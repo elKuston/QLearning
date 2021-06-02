@@ -4,6 +4,7 @@ import random
 import numpy as np
 import pyqtgraph as pg
 from PyQt5 import QtWidgets, QtGui, uic
+from PyQt5.QtWidgets import *
 from PyQt5.Qt import Qt
 from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
 
@@ -95,8 +96,6 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         super().__init__()
         uic.loadUi('ventana_benchmark.ui', self)
 
-
-
         self.lista_algoritmos = lista_algoritmos
         self.entorno = entorno
         self.controlador = controlador
@@ -165,4 +164,37 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         self.controlador.deshabilitar_todo(False)  # Antes de cerrar la ventana habilitamos los botones de ventana princ
         self.controlador.cerrar_benchmark()
+        event.accept()
+
+
+class VentanaAjustesBenchmark(QWidget):
+    def __init__(self, controlador, ajustes, instancias_algoritmos):
+        super().__init__()
+        self.controlador = controlador
+        self.setWindowTitle("Configuración banco de pruebas")
+        layout_principal = QVBoxLayout()
+        # Layout para el numero de ejecuciones
+        layout_n_ejec = QHBoxLayout()
+        layout_n_ejec.addWidget(QLabel('Número de ejecuciones por algoritmo:'))
+        spinbox_n_ejec = QSpinBox()
+        spinbox_n_ejec.setValue(10)
+        layout_n_ejec.addWidget(spinbox_n_ejec)
+        layout_principal.addLayout(layout_n_ejec)
+
+        # Layout de los campos de cada algoritmo
+        for alg in instancias_algoritmos:
+            gb = QGroupBox(alg.get_nombre())
+            form = QFormLayout()
+            form.addRow('alpha', QDoubleSpinBox())
+            form.addRow('gamma', QDoubleSpinBox())
+            nombres_param = alg.get_nombres_parametros()
+            form.addRow(nombres_param[0], QDoubleSpinBox())
+            form.addRow(nombres_param[1], QDoubleSpinBox())
+            gb.setLayout(form)
+            layout_principal.addWidget(gb)
+
+        self.setLayout(layout_principal)
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        self.controlador.guardar_ajustes_benchmark()
         event.accept()

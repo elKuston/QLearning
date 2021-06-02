@@ -11,12 +11,15 @@ from politica import Politica, EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanas import *
 from threadsSegundoPlano import *
 from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 import utils
 
 LOG_BUFFER_DEFAULT_SIZE = 5
 ENTRENANDO = 0
 RESOLVIENDO = 1
+
+NOMBRE_APP = 'QLearning'
+NOMBRE_MODULO_SETTINGS = 'Benchmark'
 
 episodios = 100000000000000  # Las "rondas" de entrenamiento
 recompensa_media = 0.78  # Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
@@ -62,6 +65,8 @@ class Controlador(QObject):
         self.n_ejecuciones_benchmark = 10
         self.benchmark_running = False
         self.benchmark = None
+        self.ajustes_benchmark = QSettings(NOMBRE_APP, NOMBRE_MODULO_SETTINGS)
+
 
     def start(self):
         """Una vez registrados los algoritmos, este método termina de configurar los componentes e inicia la vista"""
@@ -87,6 +92,23 @@ class Controlador(QObject):
 
         self.boton_iniciar_benchmark.clicked.connect(self.toggle_benchmark)
         self.vista_benchmark.init_grafico()
+
+        self.vista_benchmark.actionConfiguracion.triggered.connect(self.mostrar_ajustes_benchmark)
+
+    def __formatear_ajustes_benchmark(self):
+        ajustes = dict([])
+        for algo in self.get_algoritmos():
+            ajustes[algo.get_nombre()] = dict([])
+            #ajustes[algo.get_nombre()]['alpha'] =
+            # TODO seguir por aqui: mapear cada parametro de las settings con el correspondiente en este diccionario. luego cambiar la ventana para que coja los datos de aqui. por ultimo hacer que los guarde (la ventana devolvera un diccionari con la misma forma y habra que guardarlo en las settings)
+
+    def mostrar_ajustes_benchmark(self):
+        ajustes = self.__formatear_ajustes_benchmark()
+        self.vista_ajustes_bechmark = VentanaAjustesBenchmark(self, ajustes, self.get_algoritmos())
+        self.vista_ajustes_bechmark.show()
+
+    def guardar_ajustes_benchmark(self):
+        print('placeholder: guardando ajustes')
 
     def cerrar_benchmark(self):
         if self.benchmark is not None:
