@@ -1,6 +1,12 @@
 import random
+import qlearning
+import utils
 
 FORMATO_FICHERO = '.pol'
+
+NOMBRE_APP = 'QLearning'
+NOMBRE_MODULO_SETTINGS = 'Benchmark'
+AJUSTES_PARAM_N_EJECUCIONES = 'numero ejecuciones'
 
 
 def guardar_fichero(nombre_fichero, contenido):
@@ -46,6 +52,40 @@ def generar_n_colores(n, pastel_factor=0, seed=8):
         colores.append(generate_new_color(colores, pastel_factor=pastel_factor))
 
     return colores
+
+
+def reset_qlearning_callbacks():
+    for callback in qlearning.lista_callbacks:
+        callback = qlearning.vacio()
+
+
+def get_nombre_ajuste(algoritmo, parametro):
+    return algoritmo.get_nombre()+' - '+parametro
+
+
+def formatear_ajustes_benchmark(ajustes, algoritmos, controlador):
+    ajustes_dict = dict([])
+    ajustes_dict[utils.AJUSTES_PARAM_N_EJECUCIONES] = int(ajustes.value(utils.AJUSTES_PARAM_N_EJECUCIONES, 10))
+    for algo in algoritmos:
+        ajustes_dict[algo.get_nombre()] = dict([])
+        ajustes_dict[algo.get_nombre()]['alpha'] = float(ajustes.value(utils.get_nombre_ajuste(algo, 'alpha'),
+                                                                       controlador.alpha))
+        ajustes_dict[algo.get_nombre()]['gamma'] = float(ajustes.value(utils.get_nombre_ajuste(algo, 'gamma'),
+                                                                       controlador.gamma))
+        defaults = algo.get_parametros_default()
+        ajustes_dict[algo.get_nombre()]['param1'] = float(ajustes.value(utils.get_nombre_ajuste(algo, 'param1'),
+                                                                        defaults[0]))
+        ajustes_dict[algo.get_nombre()]['param2'] = float(ajustes.value(utils.get_nombre_ajuste(algo, 'param2'),
+                                                                        defaults[1]))
+    return ajustes_dict
+
+
+def guardar_ajustes_benchmark(ajustes, ajustes_dict, algoritmos):
+    ajustes.setValue(utils.AJUSTES_PARAM_N_EJECUCIONES, ajustes_dict[utils.AJUSTES_PARAM_N_EJECUCIONES])
+    for alg in algoritmos:
+        nombre = alg.get_nombre()
+        for param in ['alpha', 'gamma', 'param1', 'param2']:
+            ajustes.setValue(utils.get_nombre_ajuste(alg, param), ajustes_dict[nombre][param])
 
 
 #  Credits to: https://gist.github.com/adewes/5884820

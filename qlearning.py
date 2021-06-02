@@ -29,6 +29,13 @@ callback_ejecucion_fin_ejecucion = vacio  # Lo último que se ejcuta al finaliza
 
 funcion_print = vacio
 
+lista_callbacks = [callback_entrenamiento_inicio_paso, callback_entrenamiento_fin_paso,
+                   callback_entrenamiento_recompensa, callback_entrenamiento_exito, callback_entrenamiento_fracaso,
+                   callback_enternamiento_inicio_episodio, callback_enternamiento_fin_episodio,
+                   callback_entrenamiento_inicio_entrenamiento, callback_entrenamiento_fin_entrenamiento,
+                   callback_entrenamiento_nueva_media, callback_ejecucion_inicio_paso, callback_ejecucion_fin_paso,
+                   callback_ejecucion_inicio_ejecucion, callback_ejecucion_fin_ejecucion, funcion_print]
+
 
 class QLearningBundle:
     def __init__(self, n_episodio, recompensa_media, historial_recompensa):
@@ -66,8 +73,6 @@ def ejecutar(agente):
 
 def reset(agente):
     agente.politica.inicializar_q()
-
-
 
 
 def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agente, modificar_recompensa=True):

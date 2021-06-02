@@ -11,12 +11,13 @@ from politica import Politica, EpsilonGreedy, SoftMax, UpperConfidenceBound
 from ventanas import *
 from threadsSegundoPlano import *
 from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 import utils
 
 LOG_BUFFER_DEFAULT_SIZE = 5
 ENTRENANDO = 0
 RESOLVIENDO = 1
+
 
 episodios = 100000000000000  # Las "rondas" de entrenamiento
 recompensa_media = 0.78  # Según la documentación, se considera que este problema está resuelto si en los últimos 100 episodios se obtiene una recompensa media de al menos 0.78
@@ -58,18 +59,104 @@ class Controlador(QObject):
         self.variable_param_2 = 0.99  # POR DEFECTO es el epsilon_decay
         self.algoritmos = []
 
+
+    def cargar_ajustes_benchmark(self):
+        self.ajustes_benchmark = QSettings(utils.NOMBRE_APP, utils.NOMBRE_MODULO_SETTINGS)
+        self.ajustes_benchmark_dict = utils.formatear_ajustes_benchmark(self.ajustes_benchmark, self.get_algoritmos(), self)
+        print('ajustes cargados', self.ajustes_benchmark_dict)
+
     def start(self):
         """Una vez registrados los algoritmos, este método termina de configurar los componentes e inicia la vista"""
         self.algoritmos = self.get_algoritmos()  # Almacena las INSTANCIAS de los algoritmos
 
         self.agt.set_politica(self.algoritmos[0])
 
+        # benchmark
+        self.benchmark_running = False
+        self.benchmark = None
+        self.ajustes_benchmark_dict = dict([])
+        self.cargar_ajustes_benchmark()
+
         self.vista.show()
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
+        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.ajustes_benchmark_dict, self.agt.entorno, self, self.alpha,
+                                                self.gamma, self.variable_param_1, self.variable_param_2)
         sys.exit(self.app.exec_())
 
     def mostrar_metricas(self):
         self.vista_metricas.show()
+
+    def mostrar_benchmark(self):
+        self.deshabilitar_todo(True)
+        self.vista_benchmark.show()
+        self.boton_iniciar_benchmark = self.vista_benchmark.startStopButton
+        self.barra_progreso_benchmark = self.vista_benchmark.progressBar
+        self.descripcion_progreso_benchmark = self.vista_benchmark.progressLabel
+
+        self.boton_iniciar_benchmark.clicked.connect(self.toggle_benchmark)
+        self.vista_benchmark.init_grafico()
+
+        self.vista_benchmark.actionConfiguracion.triggered.connect(self.mostrar_ajustes_benchmark)
+
+
+    def mostrar_ajustes_benchmark(self):
+        ajustes = utils.formatear_ajustes_benchmark(self.ajustes_benchmark, self.get_algoritmos(), self)
+        self.vista_ajustes_bechmark = VentanaAjustesBenchmark(self, ajustes, self.get_algoritmos())
+        self.vista_ajustes_bechmark.show()
+
+    def guardar_ajustes_benchmark(self, ajustes):
+        self.ajustes_benchmark_dict = ajustes  # Actualizamos los ajustes del controlador
+        self.vista_benchmark.formatear_titulo_gafico(ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES])
+        utils.guardar_ajustes_benchmark(self.ajustes_benchmark, ajustes, self.get_algoritmos())
+
+    def cerrar_benchmark(self):
+        if self.benchmark is not None:
+            self.benchmark.terminate()
+
+    def toggle_benchmark(self):
+        if self.benchmark_running:
+            self.benchmark_running = False
+            self.boton_iniciar_benchmark.setText('Iniciar')
+            self.descripcion_progreso_benchmark.setText('Benchmark detenido')
+            self.benchmark.terminate()
+        else:
+            self.benchmark_running = True
+            self.boton_iniciar_benchmark.setText('Detener')
+            self.vista_benchmark.limpiar_grafico()
+            self.mediciones_benchmark = dict([])
+            for n in self.get_nombres_algoritmos():
+                self.mediciones_benchmark[n] = []
+
+            self.benchmark = ThreadBenchmark(self.agt.entorno, self, self.algoritmos_registrados, 10000,
+                                             self.ajustes_benchmark_dict)
+            self.benchmark.sig_actualizar_benchmark.connect(self.anadir_medicion_benchmark)
+            self.benchmark.start()
+
+            self.descripcion_progreso_benchmark.setText('Iniciando benchmark...')
+
+    def deshabilitar_todo(self, deshabilitado):
+        self.entrenar_button.setDisabled(deshabilitado)
+        self.reset_button.setDisabled(deshabilitado)
+        self.play_pause_button.setDisabled(deshabilitado)
+        self.resolver_button.setDisabled(deshabilitado)
+        self.dropdown_mapa.setDisabled(deshabilitado)
+        self.dropdown_algoritmo.setDisabled(deshabilitado)
+        self.habilitar_hiperparams(not deshabilitado)
+
+    def anadir_medicion_benchmark(self, politica, medida):
+        self.mediciones_benchmark[politica].append(medida)
+        ejecuciones_totales = self.ajustes_benchmark_dict[utils.AJUSTES_PARAM_N_EJECUCIONES]*len(self.algoritmos_registrados)
+        ejecuciones_completadas = sum([len(self.mediciones_benchmark[p]) for p in self.get_nombres_algoritmos()])
+        progreso = 100.0*ejecuciones_completadas/ejecuciones_totales
+        self.barra_progreso_benchmark.setValue(progreso)
+        self.descripcion_progreso_benchmark.setText(
+            'Ejecutando: {} ({}/{})'.format(politica,
+                                            len(self.mediciones_benchmark[politica]),
+                                            self.ajustes_benchmark_dict[utils.AJUSTES_PARAM_N_EJECUCIONES])
+        )
+        if progreso == 100:
+            self.descripcion_progreso_benchmark.setText('Benchmark finalizado')
+        self.vista_benchmark.actualizar_grafico(politica, medida)
 
     def get_algoritmos(self):
         algoritmos = []
@@ -121,6 +208,7 @@ class Controlador(QObject):
         self.variable_param_label_1 = self.vista.variableParamLabel1
         self.variable_param_label_2 = self.vista.variableParamLabel2
         self.mostrar_metricas_action = self.vista.mostrarMetricasAction
+        self.mostrar_benchmark_action = self.vista.abrirBenchmarkAction
 
     def __map_comportamiento_ui(self):
         # Mapeamos cada widget con su comportamiento
@@ -145,6 +233,7 @@ class Controlador(QObject):
         self.variable_param_spinbox_1.valueChanged.connect(self.refresh_algoritmo)
         self.variable_param_spinbox_2.valueChanged.connect(self.refresh_algoritmo)
         self.mostrar_metricas_action.triggered.connect(self.mostrar_metricas)
+        self.mostrar_benchmark_action.triggered.connect(self.mostrar_benchmark)
 
     # TODO - en la branch correspondiente, meter esto en el módulo utils que aquí sobra un poco
     def abrir_dialogo_guardado(self):
@@ -202,6 +291,7 @@ class Controlador(QObject):
             text = 'Play'
         self.play_pause_button.setText(text)
 
+
     def cambiar_tiempo_espera(self):
         self.sig_cambiar_tiempo_espera.emit(
             self.espera_slider.value() / 1000
@@ -223,6 +313,7 @@ class Controlador(QObject):
         self.agt.reset()
         self.generar_thread_actual()
         self.habilitar_hiperparams()
+        self.mostrar_benchmark_action.setDisabled(False)
         self.hiperparams_default()
         self.actualizarVista()
 
@@ -279,6 +370,7 @@ class Controlador(QObject):
         if not self.agt.playing:
             self.togglePlay()
         self.habilitar_hiperparams(False)
+        self.mostrar_benchmark_action.setDisabled(True)
 
     def get_thread_inactivo(self):
         thread = None

@@ -22,6 +22,7 @@ def tamanos_mapas():
 
 class FrozenLake:
     def __init__(self, nombre_mapa):
+        self.nombre_mapa = nombre_mapa  # Usado para "clonar" el entorno (ya que es el unico parametro de constructor)
         self.frozen_lake = gym.make(nombre_mapa)
         self.observation_space = self.frozen_lake.observation_space
         self.action_space = self.frozen_lake.action_space
