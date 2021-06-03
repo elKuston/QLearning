@@ -199,6 +199,9 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="decimals">
+           <number>5</number>
+          </property>
           <property name="maximum">
            <double>1.000000000000000</double>
           </property>
@@ -228,6 +231,9 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="decimals">
+           <number>5</number>
           </property>
           <property name="maximum">
            <double>1.000000000000000</double>
@@ -259,6 +265,9 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="decimals">
+           <number>5</number>
+          </property>
           <property name="maximum">
            <double>1.000000000000000</double>
           </property>
@@ -285,6 +294,9 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="decimals">
+           <number>5</number>
           </property>
           <property name="maximum">
            <double>1.000000000000000</double>
@@ -356,7 +368,7 @@
   </action>
   <action name="mostrarMetricasAction">
    <property name="text">
-    <string>Abrir ventana de métricas</string>
+    <string>Evolución del entrenamiento</string>
    </property>
   </action>
   <action name="limpiarLogAction">
@@ -366,7 +378,7 @@
   </action>
   <action name="abrirBenchmarkAction">
    <property name="text">
-    <string>Abrir ventana de Benchmark</string>
+    <string>Banco de pruebas</string>
    </property>
   </action>
  </widget>

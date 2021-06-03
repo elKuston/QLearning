@@ -59,7 +59,6 @@ class Controlador(QObject):
         self.variable_param_2 = 0.99  # POR DEFECTO es el epsilon_decay
         self.algoritmos = []
 
-
     def cargar_ajustes_benchmark(self):
         self.ajustes_benchmark = QSettings(utils.NOMBRE_APP, utils.NOMBRE_MODULO_SETTINGS)
         self.ajustes_benchmark_dict = utils.formatear_ajustes_benchmark(self.ajustes_benchmark, self.get_algoritmos(), self)
@@ -112,12 +111,18 @@ class Controlador(QObject):
     def cerrar_benchmark(self):
         if self.benchmark is not None:
             self.benchmark.terminate()
+        self.boton_iniciar_benchmark.setText('Iniciar')
+        self.vista_benchmark.limpiar_grafico()
+        self.barra_progreso_benchmark.setValue(0)
+        self.play_pause_button.setDisabled(True)
+        self.entrenar_button.setDisabled(True)
 
     def toggle_benchmark(self):
         if self.benchmark_running:
             self.benchmark_running = False
             self.boton_iniciar_benchmark.setText('Iniciar')
             self.descripcion_progreso_benchmark.setText('Benchmark detenido')
+            self.barra_progreso_benchmark.setValue()
             self.benchmark.terminate()
         else:
             self.benchmark_running = True
@@ -150,7 +155,7 @@ class Controlador(QObject):
         progreso = 100.0*ejecuciones_completadas/ejecuciones_totales
         self.barra_progreso_benchmark.setValue(progreso)
         self.descripcion_progreso_benchmark.setText(
-            'Ejecutando: {} ({}/{})'.format(politica,
+            'Ejecutado: {} ({}/{})'.format(politica,
                                             len(self.mediciones_benchmark[politica]),
                                             self.ajustes_benchmark_dict[utils.AJUSTES_PARAM_N_EJECUCIONES])
         )
@@ -314,6 +319,9 @@ class Controlador(QObject):
         self.generar_thread_actual()
         self.habilitar_hiperparams()
         self.mostrar_benchmark_action.setDisabled(False)
+        self.entrenar_button.setDisabled(False)
+        self.play_pause_button.setDisabled(True)
+        self.resolver_button.setDisabled(True)
         self.hiperparams_default()
         self.actualizarVista()
 
@@ -341,8 +349,13 @@ class Controlador(QObject):
         thread.sig_print.connect(self.print_log)
         if isinstance(thread, ThreadEntrenamiento):
             thread.sig_plot.connect(self.add_plot_data)
+            thread.sig_fin_entrenamiento.connect(self.fin_entrenamiento)
         self.cambiar_tiempo_espera()
         return thread
+
+    def fin_entrenamiento(self):
+        self.play_pause_button.setDisabled(True)
+        self.resolver_button.setDisabled(False)
 
     def add_plot_data(self, x, y):
             #r = random.random() + i
@@ -371,6 +384,8 @@ class Controlador(QObject):
             self.togglePlay()
         self.habilitar_hiperparams(False)
         self.mostrar_benchmark_action.setDisabled(True)
+        self.entrenar_button.setDisabled(True)
+        self.play_pause_button.setDisabled(False)
 
     def get_thread_inactivo(self):
         thread = None

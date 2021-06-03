@@ -59,7 +59,8 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
 
         self.graphWidget.setBackground('w')
         # Add Title
-        self.graphWidget.setTitle("Eficacia del entrenamiento", color="k", size="20pt")
+        self.setWindowTitle('Evolución del entrenamiento')
+        #self.graphWidget.setTitle("Eficacia del entrenamiento", color="k", size="20pt")
         # Add Axis Labels
         styles = {"color": "k", "font-size": "10pt"}
         self.graphWidget.setLabel("left", "Recompensa media 100 eps", **styles)
@@ -79,6 +80,9 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
             self.__referencias_plt[alg_name].setData(x, y)
 
     def add_plot_data(self, x, y, alg_name):
+        if 0 in x:  # Cuando un plot tiene x 0 es que es un nuevo entrenamiento
+            self.plot_data_x[alg_name] = []
+            self.plot_data_y[alg_name] = []
         if alg_name not in self.plot_data_x:
             self.plot_data_x[alg_name] = []
         for x_ in x:
@@ -216,9 +220,9 @@ class VentanaAjustesBenchmark(QWidget):
 
             gb.setLayout(form)
             layout_principal.addWidget(gb)
-            self.boton_restablecer = QPushButton('Restablecer')
-            self.boton_restablecer.clicked.connect(self.restablecer)
-            layout_principal.addWidget(self.boton_restablecer)
+        self.boton_restablecer = QPushButton('Restablecer')
+        self.boton_restablecer.clicked.connect(self.restablecer)
+        layout_principal.addWidget(self.boton_restablecer)
 
         self.setLayout(layout_principal)
 

@@ -44,11 +44,15 @@ class SignalBuffer:
 
         return emitted
 
+    def flush(self, **kwargs):
+        self.sig.emit(*self.param_buffer)
+
 
 class ThreadEntrenamiento(QThread):
     sig_actualizar_vista = pyqtSignal()
     sig_print = pyqtSignal(str)
     sig_plot = pyqtSignal(list, list)  # x and y
+    sig_fin_entrenamiento = pyqtSignal()
 
     def __init__(self, controlador: Controlador, agente, alpha, gamma, episodios, recompensa_media, n_episodios_media):
         super().__init__()
@@ -67,12 +71,14 @@ class ThreadEntrenamiento(QThread):
         self.i = 0
 
     def run(self):
-        utils.reset_qlearning_callbacks()
+        qlearning.callback_entrenamiento_fin_entrenamiento = qlearning.vacio
+
         qlearning.callback_entrenamiento_inicio_entrenamiento = self.inicio
         qlearning.callback_entrenamiento_fin_paso = self.actualizar_vista
         qlearning.callback_entrenamiento_inicio_paso = self.esperar
         qlearning.callback_enternamiento_fin_episodio = self.anadir_plot
         qlearning.funcion_print = self.log
+        qlearning.callback_entrenamiento_fin_entrenamiento = self.fin_entrenamiento
         qlearning.entrenar(self.alpha, self.gamma, self.episodios, self.recompensa_media,
                            self.n_episodios_media, self.agente, self.agente.politica)
 
@@ -88,7 +94,7 @@ class ThreadEntrenamiento(QThread):
         self.sig_print.emit(message)
 
     def esperar(self, **kwargs):
-        time.sleep(self.tiempo_espera)
+        self.msleep(int(1000*self.tiempo_espera))
 
     def cambiar_tiempo_espera(self, nuevo_tiempo):
         self.tiempo_espera = nuevo_tiempo
@@ -99,6 +105,12 @@ class ThreadEntrenamiento(QThread):
     def inicio(self, **kwargs):
         self.actualizar_vista()
         self.print_policy()
+
+    def fin_entrenamiento(self, **kwargs):
+        self.sig_buf.flush()
+        self.sig_fin_entrenamiento.emit()
+
+
 
 
 class ThreadEjecucion(QThread):
@@ -131,10 +143,11 @@ class ThreadEjecucion(QThread):
         self.sig_buf.emit()
 
     def esperar(self):
-        time.sleep(self.tiempo_espera)
+        self.msleep(int(1000*self.tiempo_espera))
 
     def cambiar_tiempo_espera(self, nuevo_tiempo):
         self.tiempo_espera = nuevo_tiempo
+        print(self.tiempo_espera, 'ms')
 
 
 class ThreadBenchmark(QThread):
@@ -155,7 +168,13 @@ class ThreadBenchmark(QThread):
 
     def run(self):
         print("Iniciando benchmark")
-        utils.reset_qlearning_callbacks()
+
+        qlearning.callback_entrenamiento_inicio_entrenamiento = qlearning.vacio
+        qlearning.callback_entrenamiento_fin_paso = qlearning.vacio
+        qlearning.callback_entrenamiento_inicio_paso = qlearning.vacio
+        qlearning.callback_enternamiento_fin_episodio = qlearning.vacio
+        qlearning.funcion_print = qlearning.vacio
+
         qlearning.callback_entrenamiento_fin_entrenamiento = self.fin_ejecucion
         for clase_politica in self.politicas:
             nombre = clase_politica.get_nombre()

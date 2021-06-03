@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import random
 import math
+from decimal import Decimal
 
 
 class Politica(ABC):
@@ -19,7 +20,7 @@ class Politica(ABC):
         """
         valor = kwargs.get('valor', 0)
         self.agente.Q = np.full([self.agente.entorno.observation_space.n, self.agente.entorno.action_space.n], valor,
-                                dtype=np.double)
+                                dtype=np.float64)
 
     def actualizar_q(self, accion, estado_siguiente, recompensa, alpha, gamma):
         """
@@ -140,7 +141,6 @@ class SoftMax(Politica):
     def seleccionar_accion(self):
         """
         Aplica la función softmax y elige una acción aleatoriamente, donde las acciones con mayor recompensa estimada tienen más probabilidad de ser elegidas (la magnitud de esto variará según el parámetro T)
-        :param agente: El agente que se está entrenando
         :return: La acción seleccionada
         """
         probabilidades = self.__softmax(self.agente.Q[self.agente.estado], self.parametro)
@@ -151,11 +151,12 @@ class SoftMax(Politica):
         while rand > prob and i < len(probabilidades):
             i += 1
             prob += probabilidades[i]
-        #print('rand', rand, 'cumsum', np.cumsum(probabilidades), 'seleccionado', i)
         return i
 
     def __softmax(self, q_estado, t):
-        probabilidades = np.exp(q_estado/t)  #Con temp
+        max_exp = 700
+        probabilidades = np.array([math.exp(np.sign(i)*min(abs(i/t), max_exp)) for i in q_estado])  #Con temp
+
         #probabilidades = np.exp(q_estado)  #Sin temp
         suma = np.sum(probabilidades)
         softmax = probabilidades/suma
@@ -177,7 +178,7 @@ class SoftMax(Politica):
 
     @classmethod
     def get_parametros_default(cls):
-        return [0.5, 0.99999]
+        return [0.9, 0.99]
 
 
 class UpperConfidenceBound(Politica):
