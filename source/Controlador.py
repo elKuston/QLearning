@@ -1,13 +1,9 @@
-import random
-
-from PyQt5 import QtWidgets, uic
 import sys
 import time
 from Agente import Agente
-import frozenLake
 
 from typing import Type
-from politica import Politica, EpsilonGreedy, SoftMax, UpperConfidenceBound
+from politica import Politica, EpsilonGreedy, UpperConfidenceBound
 from ventanas import *
 from threadsSegundoPlano import *
 from PyQt5.QtWidgets import QFileDialog
@@ -150,14 +146,15 @@ class Controlador(QObject):
 
     def anadir_medicion_benchmark(self, politica, medida):
         self.mediciones_benchmark[politica].append(medida)
-        ejecuciones_totales = self.ajustes_benchmark_dict[utils.AJUSTES_PARAM_N_EJECUCIONES]*len(self.algoritmos_registrados)
+        ejecuciones_totales = self.ajustes_benchmark_dict[
+                                  utils.AJUSTES_PARAM_N_EJECUCIONES] * len(self.algoritmos_registrados)
         ejecuciones_completadas = sum([len(self.mediciones_benchmark[p]) for p in self.get_nombres_algoritmos()])
         progreso = 100.0*ejecuciones_completadas/ejecuciones_totales
         self.barra_progreso_benchmark.setValue(progreso)
         self.descripcion_progreso_benchmark.setText(
             'Ejecutado: {} ({}/{})'.format(politica,
-                                            len(self.mediciones_benchmark[politica]),
-                                            self.ajustes_benchmark_dict[utils.AJUSTES_PARAM_N_EJECUCIONES])
+                                           len(self.mediciones_benchmark[politica]),
+                                           self.ajustes_benchmark_dict[utils.AJUSTES_PARAM_N_EJECUCIONES])
         )
         if progreso == 100:
             self.descripcion_progreso_benchmark.setText('Benchmark finalizado')

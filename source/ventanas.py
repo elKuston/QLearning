@@ -1,17 +1,12 @@
-import math
-import random
-
 import numpy as np
 import pyqtgraph as pg
 from PyQt5 import QtWidgets, QtGui, uic
 from PyQt5.QtWidgets import *
 from PyQt5.Qt import Qt
-from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
+from PyQt5.QtChart import QChart, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
 
 import utils
 from entornoWidget import EntornoWidget
-from politica import EpsilonGreedy
-from threadsSegundoPlano import ThreadBenchmark
 
 alto = 300
 ancho = 400

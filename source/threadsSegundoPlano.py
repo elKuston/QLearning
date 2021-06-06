@@ -1,5 +1,4 @@
 import time
-from typing import Type
 
 from PyQt5.QtCore import QThread, pyqtSignal
 
@@ -8,7 +7,6 @@ from Agente import Agente
 import Controlador
 import qlearning
 import utils
-from politica import Politica
 
 
 class SignalBuffer:
