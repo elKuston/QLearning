@@ -22,7 +22,8 @@ def main():
     # Sirve para que se muestre mi icono en vez de el de python en la taskbar
     import ctypes
     myappid = u'CaponeraRomolo.TFG.QLearning.final'  # arbitrary string
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)  # Para que se muestre el icon en la task bar
+    ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)  # Para que se minimice la consola al iniciarlo
     # miedito me da lo que pueda hacer esto honestly
 
     c = Controlador()

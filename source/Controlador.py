@@ -355,11 +355,7 @@ class Controlador(QObject):
         self.resolver_button.setDisabled(False)
 
     def add_plot_data(self, x, y):
-            #r = random.random() + i
-            #y = r**2
-            #self.vista_metricas.add_plot_data(r, y, self.get_nombres_algoritmos()[0])
-            #self.vista_metricas.add_plot_data(y, r, self.get_nombres_algoritmos()[1])
-        self.vista_metricas.add_plot_data(x,y,self.agt.politica.get_nombre())
+        self.vista_metricas.add_plot_data(x, y, self.agt.politica.get_nombre())
 
     def get_thread_actual(self):
         thread = None
@@ -434,8 +430,9 @@ class Controlador(QObject):
         self.vista.cambiar_entorno(self.tamanos_mapas[self.dropdown_mapa.currentIndex()], self.agt)
         self.reset()
 
-    def print_log(self, text):
-        print(text)
+    def print_log(self, text, echo=False):
+        if echo:
+            print(text)
         estaba_abajo = self.log_box.verticalScrollBar().value() == self.log_box.verticalScrollBar().maximum()
         self.__add_to_log_buffer(text)
         if estaba_abajo:

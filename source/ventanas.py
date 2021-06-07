@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.Qt import Qt
 from PyQt5.QtChart import QChart, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
 
+import time
+
 import utils
 from entornoWidget import EntornoWidget
 
@@ -67,12 +69,18 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
         # Set Range
         self.graphWidget.setAutoVisible(y=True, x=True)
 
-    def plot(self, x, y, alg_name, color):
-        pen = pg.mkPen(color=color, width=3)
-        if self.__referencias_plt[alg_name] is None:
-            self.__referencias_plt[alg_name] = self.graphWidget.plot(x, y, name=alg_name, pen=pen)#, symbol='+', symbolSize=30, symbolBrush=(color))
-        else:
-            self.__referencias_plt[alg_name].setData(x, y)
+        self.ultimo_refresco = time.time()
+
+    def plot(self, x, y, alg_name, color, tiempo_entre_upates=150):
+        #  Solo actualizamos cada tiempo_entre_updates ms
+        t = time.time()
+        if t-self.ultimo_refresco >= tiempo_entre_upates*1.0/1000.0:
+            self.ultimo_refresco = t
+            pen = pg.mkPen(color=color, width=3)
+            if self.__referencias_plt[alg_name] is None:
+                self.__referencias_plt[alg_name] = self.graphWidget.plot(x, y, name=alg_name, pen=pen)#, symbol='+', symbolSize=30, symbolBrush=(color))
+            else:
+                self.__referencias_plt[alg_name].setData(x, y)
 
     def add_plot_data(self, x, y, alg_name):
         if 0 in x:  # Cuando un plot tiene x 0 es que es un nuevo entrenamiento
@@ -80,12 +88,10 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
             self.plot_data_y[alg_name] = []
         if alg_name not in self.plot_data_x:
             self.plot_data_x[alg_name] = []
-        for x_ in x:
-            self.plot_data_x[alg_name].append(x_)
+        self.plot_data_x[alg_name].extend(x)
         if alg_name not in self.plot_data_y:
             self.plot_data_y[alg_name] = []
-        for y_ in y:
-            self.plot_data_y[alg_name].append(y_)
+        self.plot_data_y[alg_name].extend(y)
 
         self.plot(self.plot_data_x[alg_name], self.plot_data_y[alg_name], alg_name, self.__colores[alg_name])
 
