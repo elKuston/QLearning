@@ -109,8 +109,6 @@ class ThreadEntrenamiento(QThread):
         self.sig_fin_entrenamiento.emit()
 
 
-
-
 class ThreadEjecucion(QThread):
 
     sig_actualizar_vista = pyqtSignal()
@@ -194,4 +192,3 @@ class ThreadBenchmark(QThread):
         bundle = kwargs.get('bundle')
         n_pasos = bundle.n_episodio
         self.sig_actualizar_benchmark.emit(self.politica_actual, n_pasos)
-

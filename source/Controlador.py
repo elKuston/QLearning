@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 import utils
 
-LOG_BUFFER_DEFAULT_SIZE = 5
 ENTRENANDO = 0
 RESOLVIENDO = 1
 
@@ -31,7 +30,7 @@ class Controlador(QObject):
 
         super().__init__()
         self.algoritmos_registrados = []  # Almacena las CLASES de los algoritmos
-        self.__init_log_buffer(1)
+        #self.__init_log_buffer(1)
         self.accion_actual = ENTRENANDO
         self.thread_entrenamiento = None
         self.thread_resolucion = None
@@ -76,6 +75,7 @@ class Controlador(QObject):
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
         self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.ajustes_benchmark_dict, self.agt.entorno, self, self.alpha,
                                                 self.gamma, self.variable_param_1, self.variable_param_2)
+
         sys.exit(self.app.exec_())
 
     def mostrar_metricas(self):
@@ -92,7 +92,6 @@ class Controlador(QObject):
         self.vista_benchmark.init_grafico()
 
         self.vista_benchmark.actionConfiguracion.triggered.connect(self.mostrar_ajustes_benchmark)
-
 
     def mostrar_ajustes_benchmark(self):
         ajustes = utils.formatear_ajustes_benchmark(self.ajustes_benchmark, self.get_algoritmos(), self)
@@ -195,7 +194,6 @@ class Controlador(QObject):
         self.dropdown_mapa = self.vista.dropdownMapa
         self.log_box = self.vista.logTextbox
         self.print_log('Q-Learning')
-        self.flush_log()
         #self.limpiar_log_button = self.vista.limpiarLogButton
         self.limpiar_log_action = self.vista.limpiarLogAction
         #self.exportar_q_button = self.vista.exportarMatrizButton
@@ -292,7 +290,6 @@ class Controlador(QObject):
         else:
             text = 'Play'
         self.play_pause_button.setText(text)
-
 
     def cambiar_tiempo_espera(self):
         self.sig_cambiar_tiempo_espera.emit(
@@ -434,32 +431,12 @@ class Controlador(QObject):
         if echo:
             print(text)
         estaba_abajo = self.log_box.verticalScrollBar().value() == self.log_box.verticalScrollBar().maximum()
-        self.__add_to_log_buffer(text)
+        self.log_box.append(text)
         if estaba_abajo:
             self.log_box.verticalScrollBar().setValue(self.log_box.verticalScrollBar().maximum())
 
     def limpiar_log_box(self):
         self.log_box.setText('')
-
-    def __init_log_buffer(self, buffer_size=LOG_BUFFER_DEFAULT_SIZE):
-        self.log_buffer = []
-        self.buffer_size = buffer_size
-
-    def __add_to_log_buffer(self, text):
-        self.log_buffer.append(text)
-        if self.__log_buffer_full():
-            self.__clear_log_buffer()
-
-    def __log_buffer_full(self):
-        return len(self.log_buffer) == self.buffer_size
-
-    def __clear_log_buffer(self):
-        full_log = '\n'.join(self.log_buffer)
-        self.log_box.append(full_log)
-        self.__init_log_buffer(self.buffer_size)
-
-    def flush_log(self):
-        self.__clear_log_buffer()
 
     # Ventajas de este enfoque (usar properties): El código queda mucho más modularizado y cómodo ya que no hay que
     # estar pendiente de la GUI cada vez que se cambia el valor en el código.

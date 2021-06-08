@@ -1,0 +1,207 @@
+@startuml
+'https://plantuml.com/class-diagram'
+!define DARKBLUE
+!includeurl https://raw.githubusercontent.com/Drakemor/RedDress-PlantUML/master/style.puml
+
+class Agente{
+    -entorno: FrozenLake
+    -estado : State
+    -controlador : Controlador
+    -Q : float64[][]
+    -playing : bool
+    -politica : Politica
+
+    +Agente(entorno : FrozenLake, controlador : Controlador) : Agente
+    +set_politica(politica : Politica) : void
+    +readonly_Q() : float64[][]
+    +toggle_play() : void
+
+}
+
+class Controlador{
+    -entorno : FrozenLake
+    -alpha : float64
+    -gamma : float64
+    -variable_param_1 : float64
+    -variable_param_2 : float64
+
+    +Controlador(algoritmo_base : Type[Politica]) : Controlador
+    start()
+    +registrar_algoritmo(clase : Type[Politica], recargarDropdown=True : bool) : void
+    -entrenar() : void
+    -resolver() : void
+
+}
+
+QObject <|--Controlador
+
+class EntornoWidget{
+    tamano : String
+    agente : Agente
+
+    +configurar(tamano : Integer, agente : Agente
+    -paintEvent(e : QPaintEvent)
+
+}
+
+QWidget <|-- EntornoWidget
+
+class FrozenLake{
+    -frozen_lake : Env
+    +observation_space : Space
+    +action_space : Space
+
+    +make() : FrozenLake
+    +mapas() : String[]
+    +nombres_mapas() : String[]
+    +reset() : Object, float, bool, dict
+    +step() : Object, float, bool, dict
+    +close() : void
+    +render() : void
+    +get_mapa() : String[][]
+}
+abstract class Politica{
+    -agente : Agente
+    -parametro : float64
+    -variacion_parametro : float64
+    -variacion_habilitada : bool
+
+
+    +Politica(agente : Agente, parametro : float64, variacion_parametro : float64, semilla_random : Integer) : Politica
+    +inicializar_q(**kwargs) : void
+    +actualizar_q(accion : Integer, estado_siguiente : State, reocmpensa : float64, alpha : float64, gamma : float64): void
+    +habilitar_variacion(habilitada=True : bool) : void
+    +{abstract} variar_parametro()
+    +{abstract} seleccionar_accion()
+    +{abstract} get_nombre()
+    +{abstract} get_nombres_parametros()
+    +{abstract} get_parametros_default()
+    +get_rango_parametros()
+
+}
+
+ABC <|-- Politica
+
+class EpsilonGreedy{
+    +EpsilonGreedy(agente : Agente, epsilon : float64, decaimiento_epsilon : float64, semilla_random : Integer) : Politica
+    +actualizar_q(accion : Integer, estado_siguiente : State, reocmpensa : float64, alpha : float64, gamma : float64): void
+    +variar_parametro()
+    +seleccionar_accion()
+    +get_nombre()
+    +get_nombres_parametros()
+    +get_parametros_default()
+
+}
+
+Politica <|-- EpsilonGreedy
+
+class SoftMax{
+    +SoftMax(agente : Agente, t : float64, decremento_t : float64, semilla_random : Integer) : Politica
+    +actualizar_q(accion : Integer, estado_siguiente : State, reocmpensa : float64, alpha : float64, gamma : float64): void
+    +variar_parametro()
+    +seleccionar_accion()
+    +get_nombre()
+    +get_nombres_parametros()
+    +get_parametros_default()
+    +get_rango_parametros()
+    -softmax(q_estado:float64[],t)
+
+}
+Politica <|-- SoftMax
+
+class UpperConfidenceBound{
+    +UpperConfidenceBound(agente : Agente, H : float64, T : float64, semilla_random : Integer) : Politica
+    +inicializar_q(**kwargs)
+    +actualizar_q(accion : Integer, estado_siguiente : State, reocmpensa : float64, alpha : float64, gamma : float64): void
+    +variar_parametro()
+    +seleccionar_accion()
+    +get_nombre()
+    +get_nombres_parametros()
+    +get_parametros_default()
+    +get_rango_parametros()
+}
+
+Politica <|-- UpperConfidenceBound
+
+class SignalBuffer{
+    -sig : pyqtSignal
+    -frecuencia_max : float64
+    -param_buffer : list
+
+    +SignalBuffer(sig : pyqtSignal, frecuencia_max : float64, n_args=0 : Integer)
+    +emit(*params) : bool
+    +flush() : void
+}
+
+class ThreadEntrenamiento{
+    +sig_actualizar_vista : pyqtSignal
+    +sig_print : pyqtSignal
+    +sig_plot : pyqtSignal
+    +sig_fin_entrenamiento : pyqtSignal
+    --
+    -controlador : Controlador
+    -tiempo_espera : float64
+    -agente : Agente
+    -alpha : float64
+    -gamma : float64
+    -sig_buf : SignalBuffer
+    -plot_buf : SignalBuffer
+    --
+    ThreadEntrenamiento(controlador : Controlador, agente : Agente, alpha : float64, gamma : float64, episodios : Integer, recompensa_media : float64, n_episodios_media : Integer) : ThreadEntrenamiento
+    +run() : void
+    -actualizar_vista()
+}
+
+QThread <|--ThreadEntrenamiento
+
+class ThreadEjecucion{
+    +sig_actualizar_vista : pyqtSignal
+    +sig_print : pyqtSignal
+    --
+    -controlador : Controlador
+    -tiempo_espera : float64
+    -agente : Agente
+    -sig_buf : SignalBuffer
+    --
+    ThreadEntrenamiento(controlador : Controlador, agente : Agente) : ThreadEjecucion
+    +run() : void
+    -actualizar_vista()
+
+}
+
+QThread <|--ThreadEjecucion
+
+class ThreadBenchmark{
+    -sig_actualizar_benchmark : pyqtSignal
+    --
+    -entorno : FrozenLake
+    -controlador : Controlador
+    -agente : Agente
+    -politicas : Politica[]
+    -episodios : Integer
+    -ajustes : dict
+    -n_ejecuciones : Integer
+    -recompensa_media : float64
+    -n_episodios_media : float64
+    --
+    +ThreadBenchmark(entorno : FrozenLake, controlador : Controlador, politicas : Politica[], episodios : Integer, ajustes_dict : dict, recompensa_media=0.78 : float64, n_episodios_media=100 : Integer)
+    +run() : void
+    -fin_ejecucion(**kwargs)
+}
+
+QThread <|--ThreadBenchmark
+
+class VentanaPrincipal{
+    entorno : EntornoWidget
+    +cambiar_entorno(tamano : Str, agente : Agente)
+}
+class VentanaMetricasPyqtgraph
+class VentanaBenchmark
+class VentanaAjustesBenchmark
+
+QMainWindow <|-- VentanaPrincipal
+QMainWindow <|-- VentanaMetricasPyqtgraph
+QMainWindow <|-- VentanaBenchmark
+QWidget <|-- VentanaAjustesBenchmark
+
+@enduml

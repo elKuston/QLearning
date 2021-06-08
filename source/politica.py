@@ -178,7 +178,11 @@ class SoftMax(Politica):
 
     @classmethod
     def get_parametros_default(cls):
-        return [0.9, 0.99]
+        return [10, 0.999]
+
+    @classmethod
+    def get_rango_parametros(cls):
+        return [(0, np.inf), (0, 1)]
 
 
 class UpperConfidenceBound(Politica):

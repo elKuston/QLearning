@@ -5,15 +5,6 @@ from frozenLake import FrozenLake
 
 
 class Agente:
-    def vacio(self):
-        pass
-
-    callback_entrenamiento_inicio_paso = vacio  # Lo primero que se ejcuta al inciarse el paso de entrenamiento
-    callback_entrenamiento_fin_paso = vacio  # Lo último que se ejecuta en el paso de entrenamiento
-    callback_entrenamiento_recompensa = vacio  # Se ejecuta al recibir una recompensa (aunque esta sea 0)
-    callback_entrenamiento_exito = vacio  # Se ejecuta al llegar al estado objetivo
-    callback_entrenamiento_fracaso = vacio  # Se ejecuta al llegar a un estado final no objetivo
-
     def reset(self):
         self.estado = None
         #self.entorno.reset()
