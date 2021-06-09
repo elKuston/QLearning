@@ -1,6 +1,6 @@
 @startuml
 'https://plantuml.com/class-diagram'
-!define DARKBLUE
+!define LIGHTBLUE
 !includeurl https://raw.githubusercontent.com/Drakemor/RedDress-PlantUML/master/style.puml
 
 class Agente{
@@ -15,9 +15,9 @@ class Agente{
 
 }
 
-Agente o-- FrozenLake: -entorno
-Agente o-- Controlador: -controlador
-Agente o-- Politica: -politica
+Agente --> FrozenLake: -entorno
+Agente --> Controlador: -controlador
+Agente --> Politica: -politica
 
 class Controlador{
     -alpha : float64
@@ -33,7 +33,14 @@ class Controlador{
 }
 
 QObject <|--Controlador
-Controlador o-- FrozenLake : -entorno
+Controlador --> FrozenLake : -entorno
+Controlador --> ThreadEjecucion : -threadEjecucion
+Controlador --> ThreadEntrenamiento : -threadEntrenamiento
+Controlador --> ThreadBenchmark : -threadBenchmark
+Controlador --> VentanaPrincipal : -vista
+Controlador --> VentanaBenchmark : -vista_benchmark
+Controlador --> VentanaMetricasPyqtgraph : -vista_metricas
+Controlador --> VentanaAjustesBenchmark : -vista_ajustes_benchmark
 
 class EntornoWidget{
     tamano : String
@@ -43,7 +50,7 @@ class EntornoWidget{
 }
 
 QWidget <|-- EntornoWidget
-Agente *-- EntornoWidget : -agente
+EntornoWidget o-- Agente: -agente
 
 class FrozenLake{
     +observation_space : Space
@@ -59,7 +66,7 @@ class FrozenLake{
     +get_mapa() : String[][]
 }
 
-Env *-- FrozenLake : -frozen_lake
+Env --o FrozenLake : -frozen_lake
 
 abstract class Politica{
     -parametro : float64
@@ -81,7 +88,7 @@ abstract class Politica{
 }
 
 ABC <|-- Politica
-Politica o-- Agente : -agente
+Politica --> Agente : -agente
 
 class EpsilonGreedy{
     +EpsilonGreedy(agente : Agente, epsilon : float64, decaimiento_epsilon : float64, semilla_random : Integer) : Politica
@@ -141,7 +148,6 @@ class ThreadEntrenamiento{
     +sig_fin_entrenamiento : pyqtSignal
     --
     -tiempo_espera : float64
-    -agente : Agente
     -alpha : float64
     -gamma : float64
     --
@@ -153,17 +159,15 @@ class ThreadEntrenamiento{
 QThread <|--ThreadEntrenamiento
 ThreadEntrenamiento o-- Controlador : -controlador
 ThreadEntrenamiento o-- Agente : -agente
-ThreadEntrenamiento -- SignalBuffer : -sig_buf
-ThreadEntrenamiento -- SignalBuffer : -plot_buf
+ThreadEntrenamiento --> SignalBuffer : -sig_buf
+ThreadEntrenamiento --> SignalBuffer : -plot_buf
+
 
 class ThreadEjecucion{
     +sig_actualizar_vista : pyqtSignal
     +sig_print : pyqtSignal
     --
-    -controlador : Controlador
     -tiempo_espera : float64
-    -agente : Agente
-    -sig_buf : SignalBuffer
     --
     ThreadEntrenamiento(controlador : Controlador, agente : Agente) : ThreadEjecucion
     +run() : void
@@ -172,15 +176,13 @@ class ThreadEjecucion{
 }
 
 QThread <|--ThreadEjecucion
-ThreadEjecucion -- Controlador : controlador
+ThreadEjecucion o-- Controlador : -controlador
+ThreadEjecucion o-- Agente : -agente
+ThreadEjecucion --> SignalBuffer : sig_buf
 
 class ThreadBenchmark{
     -sig_actualizar_benchmark : pyqtSignal
     --
-    -entorno : FrozenLake
-    -controlador : Controlador
-    -agente : Agente
-    -politicas : Politica[]
     -episodios : Integer
     -ajustes : dict
     -n_ejecuciones : Integer
@@ -193,17 +195,20 @@ class ThreadBenchmark{
 }
 
 QThread <|--ThreadBenchmark
+ThreadBenchmark --> FrozenLake : -entorno
+ThreadBenchmark o-- Controlador : -controlador
+ThreadBenchmark o-- Agente : -agente
+ThreadBenchmark --> "many" Politica : -politicas
 
 class VentanaPrincipal{
-    -entorno : EntornoWidget
     +VentanaPrincipal(tamano : Integer, agente : Agente, pantalla : Tuple) : VentanaPrincipal
     +cambiar_entorno(tamano : Integer, agente : Agente) : void
 }
 
 QMainWindow <|-- VentanaPrincipal
+VentanaPrincipal *--EntornoWidget : -entorno
 
 class VentanaMetricasPyqtgraph{
-    -PlotWidget : graphWidget
     -plot_data_x : dict
     -plot_data_y : dict
     -lista_algoritmos : String[]
@@ -214,12 +219,10 @@ class VentanaMetricasPyqtgraph{
 }
 
 QMainWindow <|-- VentanaMetricasPyqtgraph
+VentanaMetricasPyqtgraph o--PlotWidget : -graphWidget
 
 class VentanaBenchmark{
     -lista_algoritmos : String[]
-    -entorno : FrozenLake
-    -controlador : Controlador
-    -grafico : QChart
 
     +VentanaBenchmark(lista_aloritmos : String[], ajustes : dict, entorno : FrozenLake, controlador : Controlador) : VentanaBenchmark
     +init_grafico() : void
@@ -230,15 +233,19 @@ class VentanaBenchmark{
 }
 
 QMainWindow <|-- VentanaBenchmark
+VentanaBenchmark --> FrozenLake : -entorno
+VentanaBenchmark --> Controlador : -controlador
+VentanaBenchmark o-- QChart : -grafico
+
 
 class VentanaAjustesBenchmark{
-    -controlador : Controlador
-    -instancias_algoritmos : Politica[]
 
     +VentanaAjustesBenchmark(controlador : Controlador, ajustes : QSettings, instancias_algoritmos : Politica[]) : VentanaAjustesBenchmark
     -CloseEvent(event : QCloseEvent) : void
     -restablecer() : void
 }
 QWidget <|-- VentanaAjustesBenchmark
+VentanaAjustesBenchmark o-- Controlador : -controlador
+VentanaAjustesBenchmark o-- "many" Politica : -instancias_algoritmos
 
 @enduml
