@@ -73,8 +73,8 @@ class Controlador(QObject):
 
         self.vista.show()
         self.vista_metricas = VentanaMetricasPyqtgraph(self.get_nombres_algoritmos())
-        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.ajustes_benchmark_dict, self.agt.entorno, self, self.alpha,
-                                                self.gamma, self.variable_param_1, self.variable_param_2)
+        self.vista_benchmark = VentanaBenchmark(self.get_nombres_algoritmos(), self.ajustes_benchmark_dict,
+                                                self.agt.entorno, self, )
 
         sys.exit(self.app.exec_())
 
@@ -117,7 +117,7 @@ class Controlador(QObject):
             self.benchmark_running = False
             self.boton_iniciar_benchmark.setText('Iniciar')
             self.descripcion_progreso_benchmark.setText('Benchmark detenido')
-            self.barra_progreso_benchmark.setValue()
+            self.barra_progreso_benchmark.setValue(0)
             self.benchmark.terminate()
         else:
             self.benchmark_running = True

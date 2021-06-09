@@ -4,12 +4,9 @@
 !includeurl https://raw.githubusercontent.com/Drakemor/RedDress-PlantUML/master/style.puml
 
 class Agente{
-    -entorno: FrozenLake
     -estado : State
-    -controlador : Controlador
     -Q : float64[][]
     -playing : bool
-    -politica : Politica
 
     +Agente(entorno : FrozenLake, controlador : Controlador) : Agente
     +set_politica(politica : Politica) : void
@@ -18,36 +15,37 @@ class Agente{
 
 }
 
+Agente o-- FrozenLake: -entorno
+Agente o-- Controlador: -controlador
+Agente o-- Politica: -politica
+
 class Controlador{
-    -entorno : FrozenLake
     -alpha : float64
     -gamma : float64
     -variable_param_1 : float64
     -variable_param_2 : float64
 
     +Controlador(algoritmo_base : Type[Politica]) : Controlador
-    start()
+    +start()
     +registrar_algoritmo(clase : Type[Politica], recargarDropdown=True : bool) : void
     -entrenar() : void
     -resolver() : void
-
 }
 
 QObject <|--Controlador
+Controlador o-- FrozenLake : -entorno
 
 class EntornoWidget{
     tamano : String
-    agente : Agente
 
     +configurar(tamano : Integer, agente : Agente
     -paintEvent(e : QPaintEvent)
-
 }
 
 QWidget <|-- EntornoWidget
+Agente *-- EntornoWidget : -agente
 
 class FrozenLake{
-    -frozen_lake : Env
     +observation_space : Space
     +action_space : Space
 
@@ -60,8 +58,10 @@ class FrozenLake{
     +render() : void
     +get_mapa() : String[][]
 }
+
+Env *-- FrozenLake : -frozen_lake
+
 abstract class Politica{
-    -agente : Agente
     -parametro : float64
     -variacion_parametro : float64
     -variacion_habilitada : bool
@@ -81,6 +81,7 @@ abstract class Politica{
 }
 
 ABC <|-- Politica
+Politica o-- Agente : -agente
 
 class EpsilonGreedy{
     +EpsilonGreedy(agente : Agente, epsilon : float64, decaimiento_epsilon : float64, semilla_random : Integer) : Politica
@@ -139,13 +140,10 @@ class ThreadEntrenamiento{
     +sig_plot : pyqtSignal
     +sig_fin_entrenamiento : pyqtSignal
     --
-    -controlador : Controlador
     -tiempo_espera : float64
     -agente : Agente
     -alpha : float64
     -gamma : float64
-    -sig_buf : SignalBuffer
-    -plot_buf : SignalBuffer
     --
     ThreadEntrenamiento(controlador : Controlador, agente : Agente, alpha : float64, gamma : float64, episodios : Integer, recompensa_media : float64, n_episodios_media : Integer) : ThreadEntrenamiento
     +run() : void
@@ -153,6 +151,10 @@ class ThreadEntrenamiento{
 }
 
 QThread <|--ThreadEntrenamiento
+ThreadEntrenamiento o-- Controlador : -controlador
+ThreadEntrenamiento o-- Agente : -agente
+ThreadEntrenamiento -- SignalBuffer : -sig_buf
+ThreadEntrenamiento -- SignalBuffer : -plot_buf
 
 class ThreadEjecucion{
     +sig_actualizar_vista : pyqtSignal
@@ -170,6 +172,7 @@ class ThreadEjecucion{
 }
 
 QThread <|--ThreadEjecucion
+ThreadEjecucion -- Controlador : controlador
 
 class ThreadBenchmark{
     -sig_actualizar_benchmark : pyqtSignal

@@ -97,17 +97,13 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
 
 
 class VentanaBenchmark(QtWidgets.QMainWindow):
-    def __init__(self, lista_algoritmos, ajustes, entorno, controlador, alpha, gamma, param1, param2):
+    def __init__(self, lista_algoritmos, ajustes, entorno, controlador):
         super().__init__()
         uic.loadUi('ventana_benchmark.ui', self)
 
         self.lista_algoritmos = lista_algoritmos
         self.entorno = entorno
         self.controlador = controlador
-        self.alpha = alpha
-        self.gamma = gamma
-        self.param1 = param1
-        self.param2 = param2
 
         tupla_algoritmos = tuple(lista_algoritmos)
         eje_x = QBarCategoryAxis()
@@ -188,10 +184,6 @@ class VentanaAjustesBenchmark(QWidget):
         layout_principal.addLayout(layout_n_ejec)
 
         # Layout de los campos de cada algoritmo
-        self.alpha_spinboxes = dict([])
-        self.gamma_spinboxes = dict([])
-        self.param1_spinboxes = dict([])
-        self.param2_spinboxes = dict([])
         self.spinboxes = dict([])
         for alg in instancias_algoritmos:
             nombre = alg.get_nombre()
