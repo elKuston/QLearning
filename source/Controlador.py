@@ -48,7 +48,7 @@ class Controlador(QObject):
         self.registrar_algoritmo(algoritmo_base)
         self.__map_comportamiento_ui()
 
-        self.alpha = 0.1  # Tasa de aprendizaje
+        self.alpha = 0.5  # Tasa de aprendizaje
         self.gamma = 1  # Determina cuánta importancia tienen las recompensas de los nuevos estados
         self.variable_param_1 = 1  # La probabilidad  de tomar una acción aleatoria (en lugar de la que la política nos dice que es mejor)
         self.variable_param_2 = 0.99  # POR DEFECTO es el epsilon_decay

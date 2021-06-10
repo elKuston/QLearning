@@ -178,7 +178,7 @@ class SoftMax(Politica):
 
     @classmethod
     def get_parametros_default(cls):
-        return [10, 0.999]
+        return [0.01, 1]
 
     @classmethod
     def get_rango_parametros(cls):

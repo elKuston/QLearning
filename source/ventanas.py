@@ -144,6 +144,7 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         series.append(barset_media)
         series.append(barset_mejor)
         series.append(barset_peor)
+        series.setLabelsVisible(True)
         self.grafico.addSeries(series)
         self.init_grafico()
 
