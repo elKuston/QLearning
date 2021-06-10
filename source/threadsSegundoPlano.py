@@ -31,7 +31,7 @@ class SignalBuffer:
             self.param_buffer[index].append(params[index])
 
         t = time.time()
-        if t - self.ultima_emision >= self.frecuencia_max:  # Solo emite señales cada 16ms (60hz)
+        if t - self.ultima_emision >= self.frecuencia_max:
             self.ultima_emision = t
             if self.n_args > 0:
                 self.sig.emit(*self.param_buffer)
@@ -44,6 +44,7 @@ class SignalBuffer:
 
     def flush(self, **kwargs):
         self.sig.emit(*self.param_buffer)
+        self.param_buffer = [[] for i in range(self.n_args)]
 
 
 class ThreadEntrenamiento(QThread):
@@ -105,7 +106,7 @@ class ThreadEntrenamiento(QThread):
         self.print_policy()
 
     def fin_entrenamiento(self, **kwargs):
-        self.sig_buf.flush()
+        self.plot_buf.flush()
         self.sig_fin_entrenamiento.emit()
 
 

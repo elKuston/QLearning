@@ -57,7 +57,6 @@ class Controlador(QObject):
     def cargar_ajustes_benchmark(self):
         self.ajustes_benchmark = QSettings(utils.NOMBRE_APP, utils.NOMBRE_MODULO_SETTINGS)
         self.ajustes_benchmark_dict = utils.formatear_ajustes_benchmark(self.ajustes_benchmark, self.get_algoritmos(), self)
-        print('ajustes cargados', self.ajustes_benchmark_dict)
 
     def start(self):
         """Una vez registrados los algoritmos, este método termina de configurar los componentes e inicia la vista"""

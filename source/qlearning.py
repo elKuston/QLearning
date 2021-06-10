@@ -95,7 +95,9 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
 
     callback_entrenamiento_inicio_entrenamiento(bundle=bundle)
 
-    for episodio in range(episodios): #Repetir el problema tantas veces como episodios
+    finalizado = False
+    episodio = 0
+    while not finalizado and episodio < episodios: #Repetir el problema tantas veces como episodios
         bundle.n_episodio = episodio
         callback_enternamiento_inicio_episodio(bundle=bundle)
         agente.estado = agente.entorno.reset()#Reiniciamos el entorno en cada episodio
@@ -135,13 +137,13 @@ def entrenar(alpha, gamma, episodios, recompensa_media, n_episodios_media, agent
         if media >= recompensa_media:
             funcion_print("El problema ha sido resuelto en {} episodios".format(episodio))
             funcion_print("recompensa media obtenida últimos {} episodios: {}".format(n_episodios_media, media))
-            break
+            finalizado = True
         #print(agente.Q)
         if episodio % n_episodios_media == 0:
             funcion_print("recompensa media obtenida últimos {} episodios: {}".format(n_episodios_media, media))
-        if episodio % 10 ==0:
-            callback_entrenamiento_nueva_media(bundle=bundle)
+        callback_entrenamiento_nueva_media(bundle=bundle)
         callback_enternamiento_fin_episodio(bundle=bundle)
+        episodio += 1
     # entorno.close()#Cerrar el entorno tras el entrenamiento
     # return Q
     callback_entrenamiento_fin_entrenamiento(bundle=bundle)

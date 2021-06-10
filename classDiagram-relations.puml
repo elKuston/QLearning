@@ -15,6 +15,28 @@ class Agente{
 
 }
 
+class QLearningBundle{
+   +n_episodio : Integer
+   +recompensa_media : float64
+   +historial_recompemsas : float64[]
+}
+
+class qlearning{
+    +callback_entrenamiento_inicio_paso
+    +callback_entrenamiento_fin_paso
+    +callback_entrenamiento_recompensa
+    +callback_entrenamiento_exito
+    ..callbacks..
+    +callback_ejecucion_inicio_ejecucion
+    +callback_ejecucion_fin_ejecucion
+    --
+    +ejecutar(agente : Agente) : float64
+    +reset(agente : Agente) : float64
+    +entrenar(alpha : float64, gamma : float64, episodios : Integer, recompensa_media : float64, n_episodios_media : Integer, agente : Agente, modificar_recompensa=True : bool)
+}
+
+qlearning --> QLearningBundle
+
 Agente --> FrozenLake: -entorno
 Agente --> Controlador: -controlador
 Agente --> Politica: -politica

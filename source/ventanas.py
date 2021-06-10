@@ -35,6 +35,7 @@ class VentanaPrincipal(QtWidgets.QMainWindow):
 class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
     def __init__(self, lista_algoritmos):
         super().__init__()
+        self.setWindowIcon(QtGui.QIcon('icon-crop.png'))
 
         #uic.loadUi('ventana_metricas.ui', self)
         #self.graphWidget = self.pyqtGraph
@@ -71,10 +72,10 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
 
         self.ultimo_refresco = time.time()
 
-    def plot(self, x, y, alg_name, color, tiempo_entre_upates=150):
+    def plot(self, x, y, alg_name, color, tiempo_entre_upates=150, force=False):
         #  Solo actualizamos cada tiempo_entre_updates ms
         t = time.time()
-        if t-self.ultimo_refresco >= tiempo_entre_upates*1.0/1000.0:
+        if force or t-self.ultimo_refresco >= tiempo_entre_upates*1.0/1000.0:
             self.ultimo_refresco = t
             pen = pg.mkPen(color=color, width=3)
             if self.__referencias_plt[alg_name] is None:
@@ -93,12 +94,13 @@ class VentanaMetricasPyqtgraph(QtWidgets.QMainWindow):
             self.plot_data_y[alg_name] = []
         self.plot_data_y[alg_name].extend(y)
 
-        self.plot(self.plot_data_x[alg_name], self.plot_data_y[alg_name], alg_name, self.__colores[alg_name])
+        self.plot(self.plot_data_x[alg_name], self.plot_data_y[alg_name], alg_name, self.__colores[alg_name], force=(len(y) > 0 and np.max(y) >= 0.78))  # Un poco hardcodeado ese 0.78 pero its ok
 
 
 class VentanaBenchmark(QtWidgets.QMainWindow):
     def __init__(self, lista_algoritmos, ajustes, entorno, controlador):
         super().__init__()
+        self.setWindowIcon(QtGui.QIcon('icon-crop.png'))
         uic.loadUi('ventana_benchmark.ui', self)
 
         self.lista_algoritmos = lista_algoritmos
@@ -170,7 +172,7 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
 class VentanaAjustesBenchmark(QWidget):
     def __init__(self, controlador, ajustes, instancias_algoritmos):
         super().__init__()
-        print(ajustes)
+        self.setWindowIcon(QtGui.QIcon('icon-crop.png'))
         self.controlador = controlador
         self.instancias_algoritmos = instancias_algoritmos
 
