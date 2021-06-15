@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets, QtGui, uic
 from PyQt5.QtWidgets import *
 from PyQt5.Qt import Qt
 from PyQt5.QtChart import QChart, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
+import math
 
 import time
 
@@ -131,7 +132,7 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         """Añade a la barra de algoritmo el nuevo dato"""
         self.datos[algoritmo].append(nuevo_dato)
         self.grafico.removeAllSeries()
-        medias = [np.mean(datos) if len(datos) > 0 else 0 for datos in self.datos.values()]
+        medias = [math.floor(np.mean(datos)) if len(datos) > 0 else 0 for datos in self.datos.values()]
         mejores = [np.min(datos) if len(datos) > 0 else 0 for datos in self.datos.values()]
         peores = [np.max(datos) if len(datos) > 0 else 0 for datos in self.datos.values()]
         self.eje_y.setRange(0, max(max(medias), max(peores)))
@@ -182,6 +183,7 @@ class VentanaAjustesBenchmark(QWidget):
         layout_n_ejec = QHBoxLayout()
         layout_n_ejec.addWidget(QLabel('Número de ejecuciones por algoritmo:'))
         self.spinbox_n_ejec = QSpinBox()
+        self.spinbox_n_ejec.setRange(1, 10000)
         self.spinbox_n_ejec.setValue(ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES])
         layout_n_ejec.addWidget(self.spinbox_n_ejec)
         layout_principal.addLayout(layout_n_ejec)
