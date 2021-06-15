@@ -211,7 +211,7 @@ class UpperConfidenceBound(Politica):
 
     @classmethod
     def get_nombre(cls):
-        return "Upper Confidende Bound (UCB)"
+        return "Upper Confidence Bound (UCB)"
 
     @classmethod
     def get_nombres_parametros(cls):
