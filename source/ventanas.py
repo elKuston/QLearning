@@ -3,7 +3,7 @@ import pyqtgraph as pg
 from PyQt5 import QtWidgets, QtGui, uic
 from PyQt5.QtWidgets import *
 from PyQt5.Qt import Qt
-from PyQt5.QtChart import QChart, QBarSet, QBarSeries, QBarCategoryAxis, QValueAxis
+from PyQt5.QtChart import QChart, QBarSet, QBarSeries, QBarCategoryAxis, QLogValueAxis, QValueAxis, QBoxSet, QBoxPlotSeries
 import math
 
 import time
@@ -111,31 +111,56 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         tupla_algoritmos = tuple(lista_algoritmos)
         eje_x = QBarCategoryAxis()
         eje_x.append(tupla_algoritmos)
-        self.eje_y = QValueAxis()
+        self.eje_y = QLogValueAxis()
         self.eje_y.setRange(0, 100)
+        pen = QtGui.QPen()
+        pen.setStyle(Qt.DashLine)
+        self.eje_y.setGridLinePen(pen)
+        self.eje_y.setMinorTickCount(10)
+        self.eje_y.setBase(10)
+        self.eje_y.setLabelFormat("%g")
+        self.eje_y.setTitleText("Número de episodios")
 
         self.grafico = QChart()
         #self.grafico.addSeries(series)
         self.grafico.setAnimationOptions(QChart.NoAnimation)
         self.grafico.addAxis(eje_x, Qt.AlignBottom)
         self.grafico.addAxis(self.eje_y, Qt.AlignLeft)  # TODO no se muestra
-        n_ejecuciones = ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES]
-        self.formatear_titulo_gafico(n_ejecuciones)
-
+        self.set_ajustes(ajustes, False)
         self.grafico.legend().setVisible(True)
         self.grafico.legend().setAlignment(Qt.AlignTop)
+        self.__init_datos()
+
+    def set_ajustes(self, ajustes, actualizar_grafico=True):
+        n_ejecuciones = ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES]
+        self.formatear_titulo_gafico(n_ejecuciones)
+        self.modo = ajustes[utils.AJUSTES_PARAM_MODO_BENCHMARK]
+        if actualizar_grafico:
+            self.actualizar_grafico()
+
 
     def init_grafico(self):
         self.vista_grafico.setChart(self.grafico)
 
-    def actualizar_grafico(self, algoritmo, nuevo_dato):
+    def actualizar_grafico(self, algoritmo=None, nuevo_dato=None, clear=True):
         """Añade a la barra de algoritmo el nuevo dato"""
-        self.datos[algoritmo].append(nuevo_dato)
-        self.grafico.removeAllSeries()
+        if algoritmo is not None and nuevo_dato is not None:
+            self.datos[algoritmo].append(nuevo_dato)
+        if clear:
+            self.grafico.removeAllSeries()
+
+        if self.modo == utils.AJUSTES_BENCHMARK_MODO_BARRAS:
+            self.__actualizar_grafico_barras()
+        else:
+            self.__actualizar_grafico_cajas()
+
+    def __actualizar_grafico_barras(self):
+        self.grafico.legend().setVisible(True)
+
         medias = [math.floor(np.mean(datos)) if len(datos) > 0 else 0 for datos in self.datos.values()]
         mejores = [np.min(datos) if len(datos) > 0 else 0 for datos in self.datos.values()]
         peores = [np.max(datos) if len(datos) > 0 else 0 for datos in self.datos.values()]
-        self.eje_y.setRange(0, max(max(medias), max(peores)))
+        self.eje_y.setRange(1, max(max(medias), max(peores)))
 
         barset_media = QBarSet('Media')
         barset_media.append(medias)
@@ -149,6 +174,43 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         series.append(barset_peor)
         series.setLabelsVisible(True)
         self.grafico.addSeries(series)
+        series.attachAxis(self.eje_y)
+        self.init_grafico()
+
+    def __actualizar_grafico_cajas(self):
+        self.grafico.legend().setVisible(False)
+        series = QBoxPlotSeries()
+        maximo = 0
+        minimo = np.inf
+        for alg in self.lista_algoritmos:
+            eg = QBoxSet()
+            if len(self.datos[alg]) > 0:
+                ma = np.max(self.datos[alg])
+                mi = np.min(self.datos[alg])
+                q1 = np.quantile(self.datos[alg], 0.25)
+                q3 = np.quantile(self.datos[alg], 0.75)
+                iqr = q3-q1
+                low = max(q1-1.5*iqr, mi)
+                high = min(q3+1.5*iqr, ma)
+                if high >= maximo:
+                    maximo = high
+                if low <= minimo:
+                    minimo = low
+                eg.setValue(QBoxSet.LowerExtreme, low)
+                eg.setValue(QBoxSet.UpperExtreme, high)
+                eg.setValue(QBoxSet.Median, np.median(self.datos[alg]))
+                eg.setValue(QBoxSet.LowerQuartile, q3)
+                eg.setValue(QBoxSet.UpperQuartile, q1)
+            else:
+                eg.setValue(QBoxSet.LowerExtreme, 1)
+                eg.setValue(QBoxSet.UpperExtreme, 1)
+                eg.setValue(QBoxSet.Median, 1)
+                eg.setValue(QBoxSet.LowerQuartile, 1)
+                eg.setValue(QBoxSet.UpperQuartile, 1)
+            series.append(eg)
+        self.eje_y.setRange(max(1, minimo), maximo)
+        self.grafico.addSeries(series)
+        series.attachAxis(self.eje_y)
         self.init_grafico()
 
     def limpiar_grafico(self):
@@ -167,15 +229,21 @@ class VentanaBenchmark(QtWidgets.QMainWindow):
         event.accept()
 
     def formatear_titulo_gafico(self, n_ejecuciones):
-        self.grafico.setTitle("Pasos hasta el fin del entrenamiento ("+str(n_ejecuciones)+" ejecuciones)")
+        self.grafico.setTitle("Episodios hasta el fin del entrenamiento ("+str(n_ejecuciones)+" ejecuciones)")
 
 
 class VentanaAjustesBenchmark(QWidget):
+    def cambiar_modo(self):
+        if self.sender().isChecked():
+            self.modo_grafico = self.sender().text()
+
     def __init__(self, controlador, ajustes, instancias_algoritmos):
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('icon-crop.png'))
         self.controlador = controlador
         self.instancias_algoritmos = instancias_algoritmos
+
+        self.modo_grafico = ajustes[utils.AJUSTES_PARAM_MODO_BENCHMARK]
 
         self.setWindowTitle("Configuración banco de pruebas")
         layout_principal = QVBoxLayout()
@@ -187,6 +255,18 @@ class VentanaAjustesBenchmark(QWidget):
         self.spinbox_n_ejec.setValue(ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES])
         layout_n_ejec.addWidget(self.spinbox_n_ejec)
         layout_principal.addLayout(layout_n_ejec)
+
+        layout_modo = QHBoxLayout()
+        layout_modo.addWidget(QLabel('Modo del gráfico:'))
+        self.radios = []
+        for modo in utils.MODOS_BEMCHMARK:
+            btn = QRadioButton(modo)
+            if modo == self.modo_grafico:
+                btn.setChecked(True)
+            btn.toggled.connect(self.cambiar_modo)
+            layout_modo.addWidget(btn)
+            self.radios.append(btn)
+        layout_principal.addLayout(layout_modo)
 
         # Layout de los campos de cada algoritmo
         self.spinboxes = dict([])
@@ -227,6 +307,7 @@ class VentanaAjustesBenchmark(QWidget):
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         ajustes = dict([])
         ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES] = self.spinbox_n_ejec.value()
+        ajustes[utils.AJUSTES_PARAM_MODO_BENCHMARK] = self.modo_grafico
         for alg in self.instancias_algoritmos:
             nombre = alg.get_nombre()
             ajustes[nombre] = dict([])

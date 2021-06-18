@@ -7,6 +7,11 @@ FORMATO_FICHERO = '.pol'
 NOMBRE_APP = 'QLearning'
 NOMBRE_MODULO_SETTINGS = 'Benchmark'
 AJUSTES_PARAM_N_EJECUCIONES = 'numero ejecuciones'
+AJUSTES_PARAM_MODO_BENCHMARK = 'modo benchmark'
+AJUSTES_BENCHMARK_MODO_BARRAS = 'Barras'
+AJUSTES_BENCHMARK_MODO_CAJA = 'Cajas'
+
+MODOS_BEMCHMARK = [AJUSTES_BENCHMARK_MODO_BARRAS, AJUSTES_BENCHMARK_MODO_CAJA]
 
 
 def guardar_fichero(nombre_fichero, contenido):
@@ -66,6 +71,7 @@ def get_nombre_ajuste(algoritmo, parametro):
 def formatear_ajustes_benchmark(ajustes, algoritmos, controlador):
     ajustes_dict = dict([])
     ajustes_dict[utils.AJUSTES_PARAM_N_EJECUCIONES] = int(ajustes.value(utils.AJUSTES_PARAM_N_EJECUCIONES, 10))
+    ajustes_dict[utils.AJUSTES_PARAM_MODO_BENCHMARK] = ajustes.value(utils.AJUSTES_PARAM_MODO_BENCHMARK, utils.AJUSTES_BENCHMARK_MODO_BARRAS)
     for algo in algoritmos:
         ajustes_dict[algo.get_nombre()] = dict([])
         ajustes_dict[algo.get_nombre()]['alpha'] = float(ajustes.value(utils.get_nombre_ajuste(algo, 'alpha'),
@@ -77,11 +83,14 @@ def formatear_ajustes_benchmark(ajustes, algoritmos, controlador):
                                                                         defaults[0]))
         ajustes_dict[algo.get_nombre()]['param2'] = float(ajustes.value(utils.get_nombre_ajuste(algo, 'param2'),
                                                                         defaults[1]))
+
+    print(ajustes_dict)
     return ajustes_dict
 
 
 def guardar_ajustes_benchmark(ajustes, ajustes_dict, algoritmos):
     ajustes.setValue(utils.AJUSTES_PARAM_N_EJECUCIONES, ajustes_dict[utils.AJUSTES_PARAM_N_EJECUCIONES])
+    ajustes.setValue(utils.AJUSTES_PARAM_MODO_BENCHMARK, ajustes_dict[utils.AJUSTES_PARAM_MODO_BENCHMARK])
     for alg in algoritmos:
         nombre = alg.get_nombre()
         for param in ['alpha', 'gamma', 'param1', 'param2']:

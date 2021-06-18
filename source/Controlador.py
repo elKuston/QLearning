@@ -99,7 +99,7 @@ class Controlador(QObject):
 
     def guardar_ajustes_benchmark(self, ajustes):
         self.ajustes_benchmark_dict = ajustes  # Actualizamos los ajustes del controlador
-        self.vista_benchmark.formatear_titulo_gafico(ajustes[utils.AJUSTES_PARAM_N_EJECUCIONES])
+        self.vista_benchmark.set_ajustes(ajustes)
         utils.guardar_ajustes_benchmark(self.ajustes_benchmark, ajustes, self.get_algoritmos())
 
     def cerrar_benchmark(self):

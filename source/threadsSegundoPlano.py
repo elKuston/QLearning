@@ -158,7 +158,6 @@ class ThreadBenchmark(QThread):
         self.politicas = politicas
         self.episodios = episodios
         self.ajustes = ajustes_dict
-        print(ajustes_dict)
         self.n_ejecuciones = ajustes_dict[utils.AJUSTES_PARAM_N_EJECUCIONES]
         self.recompensa_media = recompensa_media
         self.n_episodios_media = n_episodios_media
